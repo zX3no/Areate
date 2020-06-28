@@ -7,19 +7,42 @@ function OnPostSpawn()
 	mainScript = self.GetScriptScope();
 }
 
-::OnGameEvent_player_say <- function( data )
+::OnGameEvent_player_spawn <- function(data)
 {
-	local msg = data.text				// get the chat message
-	if( msg.slice(0,1) != "!" ) return	// if the message isn't a command, leave
+	local assignedID = 0;
+	
+	for(local i = 0; i < 13; i+=4)
+    {
+		if(playerEquipment[i] != null)
+		{
+			assignedID++;
+		}
+	}
+	
+	if(assignedID < 4)	//Only update the players id if there are slots left
+	{
+		local id = data.userid;
+		SMain.SetPlayerID(id);
+	}
+}
 
-	local id = data.userid;
+function validateAllPlayersID()
+{
+	local flFrameTime = FrameTime();
+	foreach( i,v in ::VS.GetAllPlayers())
+	::delay("::VS.Events.ForceValidateUserid(activator)", i*flFrameTime, ::ENT_SCRIPT, v);
+}
+
+function getPlayerHandle(data,id)
+{
 	local player = VS.GetPlayerByUserid(id);
 	
-	local flFrameTime = FrameTime()
-	foreach( i,v in ::VS.GetAllPlayers() )
-	::delay("::VS.Events.ForceValidateUserid(activator)", i*flFrameTime, ::ENT_SCRIPT, v);
-	
-    for(local i = 0; i < 13; i+=4)
+	return player;
+}
+
+function SetPlayerID(id)
+{
+	for(local i = 0; i < 13; i+=4)
     {
         if(playerEquipment[i] == id)
         {
@@ -31,13 +54,24 @@ function OnPostSpawn()
             ScriptPrintMessageChatAll(" \x07> ID SET TO " + id);
             playerEquipment[i] = id;
             i=14;
+			//incase the enity is fucked
+			validateAllPlayersID();
         }
     }
-  
-    SMain.SayCommand( msg.slice(1), player, id)
 }
-
-function SayCommand( msg,player, id)
+::OnGameEvent_player_say <- function( data )
+{
+	local msg = data.text				// get the chat message
+	if( msg.slice(0,1) != "!" ) return	// if the message isn't a command, leave
+	
+	local id = data.userid;
+	//local player = SMain.getPlayerHandle(data, id);
+	
+	SMain.SayCommand( msg.slice(1), id)
+	
+	SMain.givePlayerWeapons(id);
+}
+function SayCommand( msg, id)
 {
 	local buffer = split( msg, " " )
 	local val, cmd = buffer[0]
@@ -75,13 +109,14 @@ function SayCommand( msg,player, id)
 					ScriptPrintMessageChatAll("Knife: "+ playerEquipment[i+3]);
 					}
                     break;
-				case "h":	
 				case "hs":
 				case "headshot":
 					HeadshotOnly();
 					break;
-				case "a":
 				case "arm":
+					ScriptPrintMessageChatAll("Arm attached");
+					break;
+				case "a":
 				case "armor":
 				case "armour":
 				case "kev":
@@ -96,14 +131,17 @@ function SayCommand( msg,player, id)
 						ScriptPrintMessageChatAll("Armor is: On");
 						equipArmor = true;
 					}
+					armorChanged = true;
 					break;
+				case "h":	
 				case "help":
-					ScriptPrintMessageChatAll(" \x04 !a: armor");
-					ScriptPrintMessageChatAll(" \x04 !h: helmet");
-					ScriptPrintMessageChatAll(" \x04 !hs: headshot only");
-					ScriptPrintMessageChatAll(" \x04 !g: guns");
-					ScriptPrintMessageChatAll(" \x04 !p: pistols");
-					ScriptPrintMessageChatAll(" \x04 !k: knives");
+					ScriptPrintMessageChatAll(" \x04 !a: \x05 armor");
+					ScriptPrintMessageChatAll(" \x04 !b: \x05 bump mines");
+					ScriptPrintMessageChatAll(" \x04 !helm: \x05 helmet");
+					ScriptPrintMessageChatAll(" \x04 !hs: \x05 headshot only");
+					ScriptPrintMessageChatAll(" \x04 !g: \x05 guns");
+					ScriptPrintMessageChatAll(" \x04 !p: \x05 pistols");
+					ScriptPrintMessageChatAll(" \x04 !k: \x05 knives");
 					break;
 				case "helm":
 				case "helmet":
@@ -117,6 +155,24 @@ function SayCommand( msg,player, id)
 						ScriptPrintMessageChatAll("Helmet is: On");
 						equipHelmet = true;
 					}
+					armorChanged = true;
+					break;
+				case "b":
+				case "bump":
+				case "bumpmines":
+					if(giveBumpMines == true)
+					{
+						SendToConsole("sv_falldamage_scale 1");
+						ScriptPrintMessageChatAll("Bump Mines: Off");
+						giveBumpMines = false;
+					}
+					else
+					{
+						SendToConsole("sv_falldamage_scale 0");
+						ScriptPrintMessageChatAll("Bump Mines: On");
+						giveBumpMines = true;
+					}
+					armorChanged = true;
 					break;
                 default:
                     ScriptPrintMessageChatAll("Invalid command.");
@@ -124,7 +180,7 @@ function SayCommand( msg,player, id)
             }
         }
     }
-	giveServerWeapons();
+	//giveServerWeapons();
 }
 
 function SetPrimary(val,i)
@@ -239,13 +295,13 @@ function SetPrimary(val,i)
 	}
 	else
 	{
-		ScriptPrintMessageChatAll(" \x05 Rifles:");
-		ScriptPrintMessageChatAll(" \x04 AK-47, M4A4, M4A1-S, Aug, SG 553, Galil AR, Famas, AWP, Scar-20");
-		ScriptPrintMessageChatAll(" \x04 G3SG1");
-		ScriptPrintMessageChatAll(" \x05 Heavy:")
-		ScriptPrintMessageChatAll(" \x04 Nova, XM1014, Sawed-Off, Mag-7, M249, Negev");
-		ScriptPrintMessageChatAll(" \x05 SMGs:");
-		ScriptPrintMessageChatAll(" \x04 Mac-10, MP9, MP7, MP5-SD, P90, UMP-45, PP-Bizon");
+		ScriptPrintMessageChatAll(" \x04 Rifles:");
+		ScriptPrintMessageChatAll(" \x05 AK-47, M4A4, M4A1-S, Aug, SG 553, Galil AR, Famas, AWP, Scar-20");
+		ScriptPrintMessageChatAll(" \x05 G3SG1");
+		ScriptPrintMessageChatAll(" \x04 Heavy:")
+		ScriptPrintMessageChatAll(" \x05 Nova, XM1014, Sawed-Off, Mag-7, M249, Negev");
+		ScriptPrintMessageChatAll(" \x04 SMGs:");
+		ScriptPrintMessageChatAll(" \x05 Mac-10, MP9, MP7, MP5-SD, P90, UMP-45, PP-Bizon");
 		return false;
 	}
 	return true;
@@ -308,8 +364,10 @@ function SetPistol(val,i)
 		playerEquipment[i + 2] = "weapon_cz75a";
 		break;
 		
+	case "rev":
 	case "revolver":
 	case "yeehaw":
+	case "r8":
 		playerEquipment[i + 2] = "weapon_revolver";
 		break;
 		
@@ -321,9 +379,9 @@ function SetPistol(val,i)
 	}
 	else
 	{
-		ScriptPrintMessageChatAll(" \x05 Pistols: ")
-		ScriptPrintMessageChatAll(" \x04 USP-S, P200, Glock, Tec-9, FiveSeven, Dual Berettas, P250");
-		ScriptPrintMessageChatAll(" \x04 CZ-75, Deagle, Revolver");
+		ScriptPrintMessageChatAll(" \x04 Pistols: ")
+		ScriptPrintMessageChatAll(" \x05 USP-S, P200, Glock, Tec-9, FiveSeven, Dual Berettas, P250");
+		ScriptPrintMessageChatAll(" \x05 CZ-75, Deagle, Revolver");
 		return false;
 	}
 	return true;
@@ -430,13 +488,44 @@ function SetKnife(val,i)
 	}
 	else
 	{
-		ScriptPrintMessageChatAll(" \x05 Knives: ");
-		ScriptPrintMessageChatAll(" \x04 M9, Bayonet, Butterfly, Karambit, Flip, Huntsman, Shadow Daggers");
-		ScriptPrintMessageChatAll(" \x04 Bowie, Ursus, Navaja, Stiletto, Talon, Classic, Skeleton, Nomad");
-		ScriptPrintMessageChatAll(" \x04 Paracord, Survival, Ghost, Gold");
+		ScriptPrintMessageChatAll(" \x04 Knives: ");
+		ScriptPrintMessageChatAll(" \x05 M9, Bayonet, Butterfly, Karambit, Flip, Huntsman, Shadow Daggers");
+		ScriptPrintMessageChatAll(" \x05 Bowie, Ursus, Navaja, Stiletto, Talon, Classic, Skeleton, Nomad");
+		ScriptPrintMessageChatAll(" \x05 Paracord, Survival, Ghost, Gold");
 		return false;
 	}
 	return true;
+}
+
+::armorChanged <- false;
+
+function givePlayerWeapons(id)
+{
+	//might need to change to stripknife and shit because i need to keep the players armor
+	for(local i = 0; i < 13; i+=4)
+    {
+        if(playerEquipment[i] != "null" && playerEquipment[i] == id)
+        {
+            local player = VS.GetPlayerByUserid(playerEquipment[i]);
+			
+			EntFire("equip_strip", "Use", "", 0, player);
+			
+			if(equipArmor == true && equipHelmet == true &&armorChanged == false)
+			{
+				EquipWeapon("item_assaultsuit",60,player);
+			}
+			else if(equipArmor == true && armorChanged == false)
+			{
+				EquipWeapon("item_kevlar",60,player)
+			}
+            EquipWeapon(playerEquipment[i+1],60,player)
+			
+            EquipWeapon(playerEquipment[i+2],60,player)
+			
+            EquipWeapon(playerEquipment[i+3],60,player)
+            EntFire("weapon_knife", "addoutput", "classname weapon_knifegg")
+        }
+    }
 }
 
 function giveServerWeapons()	//Called on player spawn - fired once - when more than one person spawns this would fire multiple times
@@ -458,6 +547,11 @@ function giveServerWeapons()	//Called on player spawn - fired once - when more t
 				EquipWeapon("item_kevlar",60,player)
 			}
 			
+			if(giveBumpMines == true)
+			{
+				EquipWeapon("weapon_bumpmine",60,player);
+				EquipWeapon("weapon_bumpmine",60,player);
+			}
             EquipWeapon(playerEquipment[i+1],60,player)
 			
             EquipWeapon(playerEquipment[i+2],60,player)
@@ -503,8 +597,6 @@ function reset()
     }
 }
 
-
-
 function EquipWeapon(weapon, ammo, player)
 {
     //ScriptPrintMessageChatAll("Giving " + weapon + " with " + ammo + " rounds");
@@ -535,4 +627,46 @@ else
 	ScriptPrintMessageChatAll("Headshot Only: On")
 }	 
 
+}
+
+function ServerCommands()
+{
+//end warmup
+SendToConsole("mp_warmup_end")
+SendToConsole("mp_warmuptime 0")
+
+//roundtime
+SendToConsole("mp_roundtime 60")
+SendToConsole("mp_roundtime_defuse 60")
+SendToConsole("mp_roundtime_hostage 60")
+SendToConsole("mp_timelimit 0")
+
+//maxrounds
+SendToConsole("mp_maxrounds 100")
+
+//halftime
+SendToConsole("mp_halftime 0")
+SendToConsole("mp_halftime_duration 0")
+
+//roundtimedelays
+SendToConsole("mp_round_restart_delay 1")
+SendToConsole("mp_freezetime 0")
+
+//ffa
+SendToConsole("mp_solid_teammates 1")
+SendToConsole("mp_teammates_are_enemies 1")
+SendToConsole("mp_autokick 0")
+SendToConsole("mp_autoteambalance 0")
+//nextmap
+SendToConsole("mp_endmatch_votenextmap 0")
+SendToConsole("mp_endmatch_votenextmap_keepcurrent 1")
+
+//spectators
+SendToConsole("mp_forcecamera 0")
+
+//default weapons
+SendToConsole("mp_ct_default_primary 0")
+SendToConsole("mp_ct_default_secondary 0")
+SendToConsole("mp_t_default_primary 0")
+SendToConsole("mp_t_default_secondary 0")
 }
