@@ -1,76 +1,67 @@
 IncludeScript("vs_library")
 
-::SMain <- this
+::SMain <- this;
 ::mainScript <- 0;
+
 function OnPostSpawn() 
 {
 	mainScript = self.GetScriptScope();
 }
 
-::OnGameEvent_player_spawn <- function(data)
+::OnGameEvent_round_start <- function(data)
 {
-	local assignedID = 0;
-	
-	for(local i = 0; i < 13; i+=4)
-    {
-		if(playerEquipment[i] != null)
-		{
-			assignedID++;
-		}
-	}
-	
-	if(assignedID < 4)	//Only update the players id if there are slots left
+	// reset all
+	foreach(ply in ::VS.GetAllPlayers())
 	{
-		local id = data.userid;
-		SMain.SetPlayerID(id);
-	}
-}
-
-function validateAllPlayersID()
-{
-	local flFrameTime = FrameTime();
-	foreach( i,v in ::VS.GetAllPlayers())
-	::delay("::VS.Events.ForceValidateUserid(activator)", i*flFrameTime, ::ENT_SCRIPT, v);
-}
-
-function getPlayerHandle(data,id)
-{
-	local player = VS.GetPlayerByUserid(id);
+		local s = _init_scope(ply);
+		if(s.bot == false)
+		{
+			for(local i = 0; i < 13; i+=4)
+			{
+				if(playerEquipment[i] == s.userid)
+				{
+					i = 100;
+				}
+				else if(playerEquipment[i] == "null")
+				{
+					ScriptPrintMessageChatAll("Assigning ID "+s.userid+" to "+s.name);
+					playerEquipment[i] = s.userid;
+					givePlayerWeapons(s.userid)
+					i = 100;
+				}
+			}
+		}
 	
-	return player;
-}
+	}
 
-function SetPlayerID(id)
+	local ft = FrameTime();
+	foreach( i,v in ::VS.GetAllPlayers() )
+		::delay("::VS.Events.ForceValidateUserid(activator)", i*ft, ::ENT_SCRIPT, v);
+
+}.bindenv(this);
+
+::_init_scope <- function(s)
 {
-	for(local i = 0; i < 13; i+=4)
-    {
-        if(playerEquipment[i] == id)
-        {
-			//ScriptPrintMessageChatAll(" \x07> ID already assigned");
-            i=14;
-        }
-        else if(playerEquipment[i] == "null" && playerEquipment[i] != id)
-        {
-            ScriptPrintMessageChatAll(" \x07> ID SET TO " + id);
-            playerEquipment[i] = id;
-            i=14;
-			//incase the enity is fucked
-			validateAllPlayersID();
-        }
-    }
+	s.ValidateScriptScope();
+	s = s.GetScriptScope();
+	if( !("userid" in s) ) s.userid <- "";
+	if( !("networkid" in s) ) s.networkid <- "";
+	if( !("name" in s) ) s.name <- "";
+	if( !("bot" in s) ) s.bot <- s.networkid == "BOT";
+	return s;
 }
 ::OnGameEvent_player_say <- function( data )
 {
 	local msg = data.text				// get the chat message
-	if( msg.slice(0,1) != "!" ) return	// if the message isn't a command, leave
+	if(msg.slice(0,1) != "!") return	// if the message isn't a command, leave
 	
 	local id = data.userid;
-	//local player = SMain.getPlayerHandle(data, id);
 	
-	SMain.SayCommand( msg.slice(1), id)
+	SMain.SayCommand(msg.slice(1), id)
 	
 	SMain.givePlayerWeapons(id);
 }
+
 function SayCommand( msg, id)
 {
 	local buffer = split( msg, " " )
@@ -99,14 +90,14 @@ function SayCommand( msg, id)
                 case "pistol":
 					if(SetPistol(val,i) == true)
 					{
-					ScriptPrintMessageChatAll("Pistol: "+ playerEquipment[i+2]);
+						ScriptPrintMessageChatAll("Pistol: "+ playerEquipment[i+2]);
 					}
                     break;
                 case "k":
                 case "knife":
 					if(SetKnife(val,i) == true)
 					{
-					ScriptPrintMessageChatAll("Knife: "+ playerEquipment[i+3]);
+						ScriptPrintMessageChatAll("Knife: "+ playerEquipment[i+3]);
 					}
                     break;
 				case "hs":
@@ -180,7 +171,6 @@ function SayCommand( msg, id)
             }
         }
     }
-	//giveServerWeapons();
 }
 
 function SetPrimary(val,i)
@@ -217,6 +207,9 @@ function SetPrimary(val,i)
 	case "fam":
 	case "famas":
 		playerEquipment[i + 1] = "weapon_famas";
+		break;
+	case "awp":
+		playerEquipment[i + 1] = "weapon_awp";
 		break;
 	case "ssg":
 	case "ssg08":
@@ -497,8 +490,6 @@ function SetKnife(val,i)
 	return true;
 }
 
-::armorChanged <- false;
-
 function givePlayerWeapons(id)
 {
 	//might need to change to stripknife and shit because i need to keep the players armor
@@ -508,16 +499,13 @@ function givePlayerWeapons(id)
         {
             local player = VS.GetPlayerByUserid(playerEquipment[i]);
 			
+			//stripPrimary(player);
+			//stripKnife(player);
+
 			EntFire("equip_strip", "Use", "", 0, player);
 			
-			if(equipArmor == true && equipHelmet == true &&armorChanged == false)
-			{
-				EquipWeapon("item_assaultsuit",60,player);
-			}
-			else if(equipArmor == true && armorChanged == false)
-			{
-				EquipWeapon("item_kevlar",60,player)
-			}
+			equipPlayerArmor(player);
+
             EquipWeapon(playerEquipment[i+1],60,player)
 			
             EquipWeapon(playerEquipment[i+2],60,player)
@@ -527,7 +515,22 @@ function givePlayerWeapons(id)
         }
     }
 }
-
+function equipPlayerArmor(player)
+{
+	if(equipArmor == true && equipHelmet == true)
+	{
+		EquipWeapon("item_assaultsuit",60,player);
+	}
+	else if(equipArmor == true)
+	{
+		EquipWeapon("item_kevlar",60,player)
+	}
+	if(giveBumpMines == true)
+	{
+		EquipWeapon("weapon_bumpmine",60,player);
+		EquipWeapon("weapon_bumpmine",60,player);
+	}
+}
 function giveServerWeapons()	//Called on player spawn - fired once - when more than one person spawns this would fire multiple times
 {
 	for(local i = 0; i < 13; i+=4)
@@ -538,20 +541,8 @@ function giveServerWeapons()	//Called on player spawn - fired once - when more t
 			
 			EntFire("equip_strip", "Use", "", 0, player);
 			
-			if(equipArmor == true && equipHelmet == true)
-			{
-				EquipWeapon("item_assaultsuit",60,player);
-			}
-			else if(equipArmor == true)
-			{
-				EquipWeapon("item_kevlar",60,player)
-			}
-			
-			if(giveBumpMines == true)
-			{
-				EquipWeapon("weapon_bumpmine",60,player);
-				EquipWeapon("weapon_bumpmine",60,player);
-			}
+			equipPlayerArmor(player);
+
             EquipWeapon(playerEquipment[i+1],60,player)
 			
             EquipWeapon(playerEquipment[i+2],60,player)
@@ -599,8 +590,6 @@ function reset()
 
 function EquipWeapon(weapon, ammo, player)
 {
-    //ScriptPrintMessageChatAll("Giving " + weapon + " with " + ammo + " rounds");
-    
     //Make required entities
     local equip = Entities.CreateByClassname("game_player_equip")
     equip.__KeyValueFromInt(weapon, ammo)
@@ -614,59 +603,59 @@ function EquipWeapon(weapon, ammo, player)
 
 function HeadshotOnly()
 {
-if(headshotOnly == true)
-{
-	headshotOnly = false;
-	SendToConsole("mp_damage_headshot_only 0");
-	ScriptPrintMessageChatAll("Headshot Only: Off");
+	if(headshotOnly == true)
+	{
+		headshotOnly = false;
+		SendToConsole("mp_damage_headshot_only 0");
+		ScriptPrintMessageChatAll("Headshot Only: Off");
+	}
+	else
+	{
+		headshotOnly = true;
+		SendToConsole("mp_damage_headshot_only 1");
+		ScriptPrintMessageChatAll("Headshot Only: On")
+	}
 }
-else
+
+
+function ServerCommands()	//This is not used because logic auto is better//good for reference though
 {
-	headshotOnly = true;
-	SendToConsole("mp_damage_headshot_only 1");
-	ScriptPrintMessageChatAll("Headshot Only: On")
-}	 
+	//end warmup
+	SendToConsole("mp_warmup_end")
+	SendToConsole("mp_warmuptime 0")
 
-}
+	//roundtime
+	SendToConsole("mp_roundtime 60")
+	SendToConsole("mp_roundtime_defuse 60")
+	SendToConsole("mp_roundtime_hostage 60")
+	SendToConsole("mp_timelimit 0")
 
-function ServerCommands()
-{
-//end warmup
-SendToConsole("mp_warmup_end")
-SendToConsole("mp_warmuptime 0")
+	//maxrounds
+	SendToConsole("mp_maxrounds 100")
 
-//roundtime
-SendToConsole("mp_roundtime 60")
-SendToConsole("mp_roundtime_defuse 60")
-SendToConsole("mp_roundtime_hostage 60")
-SendToConsole("mp_timelimit 0")
+	//halftime
+	SendToConsole("mp_halftime 0")
+	SendToConsole("mp_halftime_duration 0")
 
-//maxrounds
-SendToConsole("mp_maxrounds 100")
+	//roundtimedelays
+	SendToConsole("mp_round_restart_delay 1")
+	SendToConsole("mp_freezetime 0")
 
-//halftime
-SendToConsole("mp_halftime 0")
-SendToConsole("mp_halftime_duration 0")
+	//ffa
+	SendToConsole("mp_solid_teammates 1")
+	SendToConsole("mp_teammates_are_enemies 1")
+	SendToConsole("mp_autokick 0")
+	SendToConsole("mp_autoteambalance 0")
+	//nextmap
+	SendToConsole("mp_endmatch_votenextmap 0")
+	SendToConsole("mp_endmatch_votenextmap_keepcurrent 1")
 
-//roundtimedelays
-SendToConsole("mp_round_restart_delay 1")
-SendToConsole("mp_freezetime 0")
+	//spectators
+	SendToConsole("mp_forcecamera 0")
 
-//ffa
-SendToConsole("mp_solid_teammates 1")
-SendToConsole("mp_teammates_are_enemies 1")
-SendToConsole("mp_autokick 0")
-SendToConsole("mp_autoteambalance 0")
-//nextmap
-SendToConsole("mp_endmatch_votenextmap 0")
-SendToConsole("mp_endmatch_votenextmap_keepcurrent 1")
-
-//spectators
-SendToConsole("mp_forcecamera 0")
-
-//default weapons
-SendToConsole("mp_ct_default_primary 0")
-SendToConsole("mp_ct_default_secondary 0")
-SendToConsole("mp_t_default_primary 0")
-SendToConsole("mp_t_default_secondary 0")
+	//default weapons
+	SendToConsole("mp_ct_default_primary 0")
+	SendToConsole("mp_ct_default_secondary 0")
+	SendToConsole("mp_t_default_primary 0")
+	SendToConsole("mp_t_default_secondary 0")
 }
