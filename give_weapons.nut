@@ -10,11 +10,13 @@ function OnPostSpawn()
 
 ::OnGameEvent_round_start <- function(data)
 {
+	SendToConsole("mp_respawn_immunitytime 0")
+	SendToConsole("bot_kick")
 	// reset all
 	foreach(ply in ::VS.GetAllPlayers())
 	{
 		local s = _init_scope(ply);
-		if(s.bot == false)
+		if(s.bot == false && s.networkid != "BOT")
 		{
 			for(local i = 0; i < 13; i+=4)
 			{
@@ -22,14 +24,27 @@ function OnPostSpawn()
 				{
 					i = 100;
 				}
-				else if(playerEquipment[i] == "null")
+				else if(playerEquipment[i] == "null" &&s.userid != "" && s.userid != null)
 				{
-					ScriptPrintMessageChatAll("Assigning ID "+s.userid+" to "+s.name);
+					ScriptPrintMessageChatAll(" \x04 Assigning ID \x07"+s.userid+"\x04 to \x07"+s.name);
+					ScriptPrintMessageChatAll(" \x04 Network ID \x07"+s.networkid)
 					playerEquipment[i] = s.userid;
 					givePlayerWeapons(s.userid)
 					i = 100;
 				}
 			}
+		}
+		else
+		{
+			if(false)
+			{
+				ScriptPrintMessageChatAll(" \x04 Network ID: \x07"+s.networkid)
+				ScriptPrintMessageChatAll(" \x04 Name: \x07"+s.name)
+				ScriptPrintMessageChatAll(" \x04 UserID: \x07"+s.userid)
+				ScriptPrintMessageChatAll(" \x04 Bot: \x07"+s.bot)
+			}
+			
+			giveBotWeapons(s.userid);
 		}
 	
 	}
@@ -39,6 +54,20 @@ function OnPostSpawn()
 		::delay("::VS.Events.ForceValidateUserid(activator)", i*ft, ::ENT_SCRIPT, v);
 
 }.bindenv(this);
+function giveBotWeapons(id)
+{
+	local player = VS.GetPlayerByUserid(id);
+			
+	EntFire("equip_strip", "Use", "", 0, player);
+		
+	equipPlayerArmor(player);
+
+	//EquipWeapon("weapon_ak47",60,player)
+		
+	EquipWeapon("weapon_glock",60,player)
+	
+	EquipWeapon("weapon_knife",60,player)
+}
 
 ::_init_scope <- function(s)
 {
@@ -198,7 +227,7 @@ function SetPrimary(val,i)
 	case "sg":
 	case "sg553":
 	case "codgun":
-		playerEquipment[i + 1] = "weapon_sg553";
+		playerEquipment[i + 1] = "weapon_sg556";
 		break;
 	case "galil":
 	case "gal":
@@ -319,7 +348,7 @@ function SetPistol(val,i)
 		
 	case "glock":
 	case "glock18":
-		playerEquipment[i + 2] = "weapon_glock18";
+		playerEquipment[i + 2] = "weapon_glock";
 		break;	
 		
 	case "tec":
@@ -348,6 +377,7 @@ function SetPistol(val,i)
 	
 	case "p250":
 	case "p25":
+	case "p2":
 		playerEquipment[i + 2] = "weapon_p250";
 		break;
 	
@@ -484,7 +514,7 @@ function SetKnife(val,i)
 		ScriptPrintMessageChatAll(" \x04 Knives: ");
 		ScriptPrintMessageChatAll(" \x05 M9, Bayonet, Butterfly, Karambit, Flip, Huntsman, Shadow Daggers");
 		ScriptPrintMessageChatAll(" \x05 Bowie, Ursus, Navaja, Stiletto, Talon, Classic, Skeleton, Nomad");
-		ScriptPrintMessageChatAll(" \x05 Paracord, Survival, Ghost, Gold");
+		ScriptPrintMessageChatAll(" \x05 Paracord, Survival, Ghost, Gold, Falchion");
 		return false;
 	}
 	return true;
@@ -620,6 +650,9 @@ function HeadshotOnly()
 
 function ServerCommands()	//This is not used because logic auto is better//good for reference though
 {
+	//invunrabiltity
+	SendToConsole("mp_respawn_immunitytime 0")
+
 	//end warmup
 	SendToConsole("mp_warmup_end")
 	SendToConsole("mp_warmuptime 0")
