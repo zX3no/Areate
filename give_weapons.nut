@@ -11,7 +11,7 @@ function OnPostSpawn()
 ::OnGameEvent_round_start <- function(data)
 {
 	SendToConsole("mp_respawn_immunitytime 0")
-	SendToConsole("bot_kick")
+	//SendToConsole("bot_kick")
 	// reset all
 	foreach(ply in ::VS.GetAllPlayers())
 	{
