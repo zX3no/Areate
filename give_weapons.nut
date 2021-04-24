@@ -1,3 +1,20 @@
+//This script allows players to change their weapons using chat commands
+
+/*
+Color Config
+-------------
+Default: \x01
+Dark Red: \x02
+Purple: \x03
+Green: \x04
+Light Green: \x05
+Lime Green: \x06
+Red: \x07
+Grey: \x08
+Orange: \x09
+-------------
+*/
+
 IncludeScript("vs_library")
 
 ::SMain <- this;
@@ -10,6 +27,11 @@ function OnPostSpawn()
 
 ::OnGameEvent_round_start <- function(data)
 {
+	//local roundsPlayed = ScriptGetRoundsPlayed();
+	if(ScriptGetRoundsPlayed() == 0)
+	{
+		ScriptPrintMessageChatAll(" \x04 Type !help for command help!");
+	}
 	SendToConsole("mp_respawn_immunitytime 0")
 	//SendToConsole("bot_kick")
 	// reset all
@@ -86,11 +108,17 @@ function giveBotWeapons(id)
 	
 	local id = data.userid;
 	
-	SMain.SayCommand(msg.slice(1), id)
-	
-	SMain.givePlayerWeapons(id);
+	local result = SMain.SayCommand(msg.slice(1), id);
+
+	//sometimes i don't want to update the players weapons
+	if(result != null && result != "false") SMain.givePlayerWeapons(id);
 }
 
+function trueIsOn(bool)
+{
+	if(bool) return "\x05 On";
+	else return "\x05 Off";
+}
 function SayCommand( msg, id)
 {
 	local buffer = split( msg, " " )
@@ -112,29 +140,34 @@ function SayCommand( msg, id)
                 case "gun":
 					if(SetPrimary(val,i) == true)
 					{
-						ScriptPrintMessageChatAll("Primary: "+ playerEquipment[i+1]);
+						ScriptPrintMessageChatAll(" \x04 Primary: \x05"+ playerEquipment[i+1]);
 					}
+					return "true";
                     break;
                 case "p":
                 case "pistol":
 					if(SetPistol(val,i) == true)
 					{
-						ScriptPrintMessageChatAll("Pistol: "+ playerEquipment[i+2]);
+						ScriptPrintMessageChatAll(" \x04 Pistol: \x05"+ playerEquipment[i+2]);
 					}
+					return "true";
                     break;
                 case "k":
                 case "knife":
 					if(SetKnife(val,i) == true)
 					{
-						ScriptPrintMessageChatAll("Knife: "+ playerEquipment[i+3]);
+						ScriptPrintMessageChatAll(" \x04 Knife: \x05"+ playerEquipment[i+3]);
 					}
+					return "true";
                     break;
 				case "hs":
 				case "headshot":
 					HeadshotOnly();
+					return "false";
 					break;
 				case "arm":
 					ScriptPrintMessageChatAll("Arm attached");
+					return "false";
 					break;
 				case "a":
 				case "armor":
@@ -143,25 +176,48 @@ function SayCommand( msg, id)
 				case "kevlar":
 					if(equipArmor == true)
 					{
-						ScriptPrintMessageChatAll("Armor is: Off");
+						ScriptPrintMessageChatAll(" \x03 Armor is: \x08 Off");
 						equipArmor = false;
 					}
 					else
 					{
-						ScriptPrintMessageChatAll("Armor is: On");
+						ScriptPrintMessageChatAll(" \x03 Armor is: \x05 On");
 						equipArmor = true;
 					}
-					armorChanged = true;
+					return "false";
 					break;
 				case "h":	
 				case "help":
-					ScriptPrintMessageChatAll(" \x04 !a: \x05 armor");
-					ScriptPrintMessageChatAll(" \x04 !b: \x05 bump mines");
-					ScriptPrintMessageChatAll(" \x04 !helm: \x05 helmet");
-					ScriptPrintMessageChatAll(" \x04 !hs: \x05 headshot only");
-					ScriptPrintMessageChatAll(" \x04 !g: \x05 guns");
-					ScriptPrintMessageChatAll(" \x04 !p: \x05 pistols");
-					ScriptPrintMessageChatAll(" \x04 !k: \x05 knives");
+					switch(val)
+					{
+						case "3":
+						ScriptPrintMessageChatAll(" \x04 Page 3/3");
+						ScriptPrintMessageChatAll(" \x04 --------------------------------------------------------------------------------------");
+						ScriptPrintMessageChatAll(" \x04 !reset: \x05 Players are assigned id's on connect, however sometimes these can be broken from players reconnecting or bot's taking id's for themeselves. \x03 ¯\\_\x28ツ\x29_/¯");
+						ScriptPrintMessageChatAll(" \x07 Use !reset to fix this!"); 
+						break;
+						case "2":
+						ScriptPrintMessageChatAll(" \x04 Page 2/3");
+						ScriptPrintMessageChatAll(" \x04 --------------------------------------------------------------------------------------");
+						ScriptPrintMessageChatAll(" \x04 !random: \x05 toggles random weapons eg. !random knife");
+						ScriptPrintMessageChatAll(" \x05 - options: primary \x04|\x05  secondary \x04|\x05 knife \x04|\x05 competitive")
+						ScriptPrintMessageChatAll(" \x04 !armor |\x05 toggles armor");
+						ScriptPrintMessageChatAll(" \x04 !bumpmines |\x05 toggle bump mines");
+						ScriptPrintMessageChatAll(" \x04 !helmet |\x05 toggles helmets");
+						ScriptPrintMessageChatAll(" \x04 !hs |\x05 toggle headshot only mode");
+						break;
+						case "1":
+						default:
+						ScriptPrintMessageChatAll(" \x04 Page 1/3");
+						ScriptPrintMessageChatAll(" \x04 --------------------------------------------------------------------------------------");
+						ScriptPrintMessageChatAll(" \x04 !gun GunName |\x05 eg. !gun ak \x04|\x05 use !gun to list available guns");
+						ScriptPrintMessageChatAll(" \x04 !pistol pistolName |\x05 eg. !pistol deagle \x04|\x05 use !pistol to list available pistols");
+						ScriptPrintMessageChatAll(" \x04 !knife knifeName |\x05 eg. !knife butterfly \x04|\x05 use !knife to list available knives");
+						break;
+					}
+					
+					
+					return "false";
 					break;
 				case "helm":
 				case "helmet":
@@ -175,7 +231,7 @@ function SayCommand( msg, id)
 						ScriptPrintMessageChatAll("Helmet is: On");
 						equipHelmet = true;
 					}
-					armorChanged = true;
+					return "false";
 					break;
 				case "b":
 				case "bump":
@@ -183,21 +239,104 @@ function SayCommand( msg, id)
 					if(giveBumpMines == true)
 					{
 						SendToConsole("sv_falldamage_scale 1");
-						ScriptPrintMessageChatAll("Bump Mines: Off");
+						ScriptPrintMessageChatAll(" \x03 Bump Mines: \x08 Off");
 						giveBumpMines = false;
 					}
 					else
 					{
 						SendToConsole("sv_falldamage_scale 0");
-						ScriptPrintMessageChatAll("Bump Mines: On");
+						ScriptPrintMessageChatAll(" \x03 Bump Mines: \x05 On");
 						giveBumpMines = true;
 					}
-					armorChanged = true;
+					return "false";
+					break;
+				case "reset":
+					reset();
+					
+					break;
+				case "random":
+				case "r":
+					switch(val)
+					{
+						//rand primary
+						case "p":
+						case "primary":
+						if(!randomPrimary)
+						{
+							ScriptPrintMessageChatAll("Random Primary: On");
+							randomPrimary = true;
+
+							//both use the primary slot one needs to be off
+							randomCompetitive = false;
+						}
+						else
+						{
+							ScriptPrintMessageChatAll("Random Primary: Off");
+							randomPrimary = false;
+						}
+						break;
+						//rand secondary
+						case "s":
+						case "secondary":
+						if(!randomSecondary)
+						{
+							ScriptPrintMessageChatAll("Random Secondary: On");
+							randomSecondary = true;
+						}
+						else
+						{
+							ScriptPrintMessageChatAll("Random Secondary: Off");
+							randomSecondary = false;
+					 	}
+						break;
+						//rand knife
+						case "k":
+						case "knife":
+						if(!randomKnife)
+						{
+							ScriptPrintMessageChatAll("Random Knife: On");
+							randomKnife = true;
+						}
+						else
+						{
+							ScriptPrintMessageChatAll("Random Knife: Off");
+							randomKnife = false;
+						}
+						break;
+						//rand comp
+						case "c":
+						case "comp":
+						case "competitive":
+						if(!randomCompetitive)
+						{
+							ScriptPrintMessageChatAll("Random Competitive: On");
+							randomCompetitive= true;
+
+							//disable random primary
+							//might want to change so everyone is using same pistol
+							randomPrimary = false;
+						}
+						else
+						{
+							ScriptPrintMessageChatAll("Random Competitive: Off");
+							randomCompetitive = false;
+						}
+						break;
+						//list current settings
+						case "l":
+						case "list":
+						ScriptPrintMessageChatAll(" \x04 Random primaries is: "+trueIsOn(randomPrimary));
+						ScriptPrintMessageChatAll(" \x04 Random secondaries is: "+trueIsOn(randomSecondary));
+						ScriptPrintMessageChatAll(" \x04 Random knives is: "+trueIsOn(randomKnife));
+						break;
+					}
+					return "false";
 					break;
                 default:
                     ScriptPrintMessageChatAll("Invalid command.");
                     break;
             }
+			
         }
     }
 }
@@ -536,12 +675,16 @@ function givePlayerWeapons(id)
 			
 			equipPlayerArmor(player);
 
+			//Primary
             EquipWeapon(playerEquipment[i+1],60,player)
 			
+			//Secondary
             EquipWeapon(playerEquipment[i+2],60,player)
-			
+
+			//Knife
             EquipWeapon(playerEquipment[i+3],60,player)
             EntFire("weapon_knife", "addoutput", "classname weapon_knifegg")
+			
         }
     }
 }
@@ -561,8 +704,27 @@ function equipPlayerArmor(player)
 		EquipWeapon("weapon_bumpmine",60,player);
 	}
 }
+
 function giveServerWeapons()	//Called on player spawn - fired once - when more than one person spawns this would fire multiple times
 {
+	
+	if(randomPrimary)
+	{
+		::primary <- rifleList[rndint(10)];
+	}
+	else if(randomCompetitive)
+	{
+		::primary <- competitiveList[rndint(3)];
+	}
+
+	if(randomSecondary)
+	{
+		::secondary <- pistolList[rndint(9)];
+	}
+	if(randomKnife)
+	{
+		::knife <- knifeList[rndint(20)];
+	}
 	for(local i = 0; i < 13; i+=4)
     {
         if(playerEquipment[i] != "null")
@@ -573,12 +735,33 @@ function giveServerWeapons()	//Called on player spawn - fired once - when more t
 			
 			equipPlayerArmor(player);
 
-            EquipWeapon(playerEquipment[i+1],60,player)
-			
-            EquipWeapon(playerEquipment[i+2],60,player)
-			
-            EquipWeapon(playerEquipment[i+3],60,player)
-            EntFire("weapon_knife", "addoutput", "classname weapon_knifegg")
+			if(randomPrimary || randomCompetitive)
+			{
+				EquipWeapon(primary,60,player);
+			}
+            else
+			{
+				EquipWeapon(playerEquipment[i+1],60,player);
+			}
+			if(randomSecondary)
+			{
+				EquipWeapon(secondary,60,player);
+			}
+            else
+			{
+				EquipWeapon(playerEquipment[i+2],60,player);
+			}
+            if(randomKnife)
+			{
+				EquipWeapon(knife,60,player);
+				EntFire("weapon_knife", "addoutput", "classname weapon_knifegg");
+			}
+            else
+			{
+				EquipWeapon(playerEquipment[i+3],60,player);
+            	EntFire("weapon_knife", "addoutput", "classname weapon_knifegg");
+			}
+
         }
     }
 }
@@ -611,11 +794,28 @@ function stripKnife(ply)
 
 function reset()
 {
+	playerEquipment = ["null", "weapon_ak47","weapon_deagle","weapon_knife_m9_bayonet",
+                      "null", "weapon_ak47","weapon_deagle","weapon_knife_m9_bayonet",
+                      "null", "weapon_ak47","weapon_deagle","weapon_knife_m9_bayonet",
+                      "null", "weapon_ak47","weapon_deagle","weapon_knife_m9_bayonet",];
+	
+	ScriptPrintMessageChatAll("Playerid "+playerEquipment[i]+" is now null");
+
+	//New method resets weapons too	  
+	/*				  
     for(local i = 0; i < 13; i+=4)
     {
         ScriptPrintMessageChatAll("Playerid "+playerEquipment[i]+" is now null");
         playerEquipment[i] = "null";
     }
+	*/
+}
+
+function rndint(max) {
+    // Generate a pseudo-random integer between 0 and max - 1, inclusive
+	local roll = rand() % max + 0;
+    //local roll = 1.0 * max * rand() / RAND_MAX;
+    return roll.tointeger();
 }
 
 function EquipWeapon(weapon, ammo, player)
@@ -637,18 +837,18 @@ function HeadshotOnly()
 	{
 		headshotOnly = false;
 		SendToConsole("mp_damage_headshot_only 0");
-		ScriptPrintMessageChatAll("Headshot Only: Off");
+		ScriptPrintMessageChatAll(" \x03 Headshot Only: \x08 Off");
 	}
 	else
 	{
 		headshotOnly = true;
 		SendToConsole("mp_damage_headshot_only 1");
-		ScriptPrintMessageChatAll("Headshot Only: On")
+		ScriptPrintMessageChatAll(" \x03 Headshot Only: \x05 On")
 	}
 }
 
 
-function ServerCommands()	//This is not used because logic auto is better//good for reference though
+function ServerCommands()	//This is not used because logic auto is better		//good for reference though
 {
 	//invunrabiltity
 	SendToConsole("mp_respawn_immunitytime 0")
