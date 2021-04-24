@@ -116,8 +116,8 @@ function giveBotWeapons(id)
 
 function trueIsOn(bool)
 {
-	if(bool) return "\x05 On";
-	else return "\x05 Off";
+	if(bool) return "\x04 On";
+	else return "\x08 Off";
 }
 function SayCommand( msg, id)
 {
@@ -239,13 +239,13 @@ function SayCommand( msg, id)
 					if(giveBumpMines == true)
 					{
 						SendToConsole("sv_falldamage_scale 1");
-						ScriptPrintMessageChatAll(" \x03 Bump Mines: \x08 Off");
+						ScriptPrintMessageChatAll(" \x03 Bump Mines: \x08Off");
 						giveBumpMines = false;
 					}
 					else
 					{
 						SendToConsole("sv_falldamage_scale 0");
-						ScriptPrintMessageChatAll(" \x03 Bump Mines: \x05 On");
+						ScriptPrintMessageChatAll(" \x03 Bump Mines: \x05On");
 						giveBumpMines = true;
 					}
 					return "false";
@@ -263,15 +263,15 @@ function SayCommand( msg, id)
 						case "primary":
 						if(!randomPrimary)
 						{
-							ScriptPrintMessageChatAll("Random Primary: On");
+							ScriptPrintMessageChatAll(" \x03 Random Primary: \x05 On");
 							randomPrimary = true;
 
 							//both use the primary slot one needs to be off
 							randomCompetitive = false;
 						}
 						else
-						{
-							ScriptPrintMessageChatAll("Random Primary: Off");
+						{ 
+							ScriptPrintMessageChatAll(" \x03 Random Primary: \x08 Off");
 							randomPrimary = false;
 						}
 						break;
@@ -280,12 +280,12 @@ function SayCommand( msg, id)
 						case "secondary":
 						if(!randomSecondary)
 						{
-							ScriptPrintMessageChatAll("Random Secondary: On");
+							ScriptPrintMessageChatAll(" \x03 Random Secondary: \x05 On");
 							randomSecondary = true;
 						}
 						else
 						{
-							ScriptPrintMessageChatAll("Random Secondary: Off");
+							ScriptPrintMessageChatAll(" \x03 Random Secondary: \x08 Off");
 							randomSecondary = false;
 					 	}
 						break;
@@ -294,12 +294,12 @@ function SayCommand( msg, id)
 						case "knife":
 						if(!randomKnife)
 						{
-							ScriptPrintMessageChatAll("Random Knife: On");
+							ScriptPrintMessageChatAll(" \x03 Random Knife: \x05 On");
 							randomKnife = true;
 						}
 						else
 						{
-							ScriptPrintMessageChatAll("Random Knife: Off");
+							ScriptPrintMessageChatAll(" \x03 Random Knife: \x08 Off");
 							randomKnife = false;
 						}
 						break;
@@ -309,7 +309,7 @@ function SayCommand( msg, id)
 						case "competitive":
 						if(!randomCompetitive)
 						{
-							ScriptPrintMessageChatAll("Random Competitive: On");
+							ScriptPrintMessageChatAll(" \x03 Random Competitive: \x05 On");
 							randomCompetitive= true;
 
 							//disable random primary
@@ -318,16 +318,17 @@ function SayCommand( msg, id)
 						}
 						else
 						{
-							ScriptPrintMessageChatAll("Random Competitive: Off");
+							ScriptPrintMessageChatAll(" \x03 Random Competitive: \x08 Off");
 							randomCompetitive = false;
 						}
 						break;
 						//list current settings
 						case "l":
 						case "list":
-						ScriptPrintMessageChatAll(" \x04 Random primaries is: "+trueIsOn(randomPrimary));
-						ScriptPrintMessageChatAll(" \x04 Random secondaries is: "+trueIsOn(randomSecondary));
-						ScriptPrintMessageChatAll(" \x04 Random knives is: "+trueIsOn(randomKnife));
+						ScriptPrintMessageChatAll(" \x03 Random primaries is: "+trueIsOn(randomPrimary));
+						ScriptPrintMessageChatAll(" \x03 Random secondaries is: "+trueIsOn(randomSecondary));
+						ScriptPrintMessageChatAll(" \x03 Random knives is: "+trueIsOn(randomKnife));
+						ScriptPrintMessageChatAll(" \x03 Random competitive is: "+trueIsOn(randomCompetitive));
 						break;
 					}
 					return "false";
@@ -710,20 +711,24 @@ function giveServerWeapons()	//Called on player spawn - fired once - when more t
 	
 	if(randomPrimary)
 	{
-		::primary <- rifleList[rndint(10)];
+		//max index 10
+		::primary <- rifleList[rndint(rifleList.len())];
 	}
 	else if(randomCompetitive)
 	{
-		::primary <- competitiveList[rndint(3)];
+		//max index 3
+		::primary <- competitiveList[rndint(competitiveList.len())];
 	}
 
 	if(randomSecondary)
 	{
-		::secondary <- pistolList[rndint(9)];
+		//max index 9
+		::secondary <- pistolList[rndint(pistolList.len())];
 	}
 	if(randomKnife)
 	{
-		::knife <- knifeList[rndint(20)];
+		//max index 20
+		::knife <- knifeList[rndint(knifeList.len())];
 	}
 	for(local i = 0; i < 13; i+=4)
     {
@@ -813,7 +818,7 @@ function reset()
 
 function rndint(max) {
     // Generate a pseudo-random integer between 0 and max - 1, inclusive
-	local roll = rand() % max + 0;
+	local roll = rand() % max;
     //local roll = 1.0 * max * rand() / RAND_MAX;
     return roll.tointeger();
 }
