@@ -1,0 +1,137 @@
+
+
+
+materialPath: D:\SteamLibrary\steamapps\common\Counter-Strike Global Offensive\csgo\materials
+Loading d:\onedrive\projects\weaponscript\ffa_areate.vmf
+Map revision 531
+Patching WVT material: maps/ffa_areate/brick/hr_brick/inferno/brick_d_blend_wvt_patch
+fixing up env_cubemap materials on brush sides...
+0...1...2...3...4...5...6...7...8...9...100...1...2...3...4...5...6...7...8...9...10Processing areas...done (0)
+Building Faces...done (0)
+Chop Details...done (0)
+Find Visible Detail Sides...
+Merged 264 detail faces...done (0)
+Merging details...done (0)
+FixTjuncs...
+PruneNodes...
+WriteBSP...
+done (0)
+writing d:\onedrive\projects\weaponscript\ffa_areate.prt...Building visibility clusters...
+AutoVisClustering (threshold=-1) matched 0 leafs.
+done (0)
+Finding displacement neighbors...
+Finding lightmap sample positions...
+Displacement Alpha : 0...1...2...3...4...5...6...7...8...9...10
+Building Physics collision data...
+done (0) (183345 bytes)
+Placing detail props : 0...1...2...3...4...5...6...7...8...9...10
+Compacting texture/material tables...
+Reduced 569 texinfos to 417
+Reduced 21 texdatas to 20 (633 bytes to 570)
+Writing d:\onedrive\projects\weaponscript\ffa_areate.bsp
+MSG_FILEWRITE - Filesystem was asked to write to 'd:\onedrive\projects\weaponscript\ffa_areate.bsp', but we don't own that location. Allowing...
+1 second elapsed
+
+
+
+16 threads
+reading d:\onedrive\projects\weaponscript\ffa_areate.bsp
+reading d:\onedrive\projects\weaponscript\ffa_areate.prt
+ 264 portalclusters
+ 964 numportals
+0...1...2...3...4...5...6...7...8...9...100...1...2...3...4...5...6...7...8...9...10Optimized: 15 visible clusters (0.00%)
+Total clusters visible: 66441
+Average clusters visible: 251
+Building PAS...
+Average clusters audible: 264
+visdatasize:19579  compressed from 21120
+writing d:\onedrive\projects\weaponscript\ffa_areate.bsp
+MSG_FILEWRITE - Filesystem was asked to write to 'd:\onedrive\projects\weaponscript\ffa_areate.bsp', but we don't own that location. Allowing...
+1 second elapsed
+
+
+
+[Reading texlights from 'lights.rad']
+[17 texlights parsed from 'lights.rad']
+
+Loading d:\onedrive\projects\weaponscript\ffa_areate.bsp
+1152 faces
+119403 square feet [17194040.00 square inches]
+236 Displacements
+14549 Square Feet [2095060.25 Square Inches]
+1152 patches before subdivision
+14952 patches after subdivision
+2 direct lights
+0...1...2...3...4...5...6...7...8...9...100...1...2...3...4...5...6...7...8...9...10transfers 620775, max 420
+transfer lists:   4.7 megs
+0...1...2...3...4...5...6...7...8...9...10	Bounce #1 added RGB(22948, 21474, 19580)
+0...1...2...3...4...5...6...7...8...9...10	Bounce #2 added RGB(3284, 2902, 2418)
+0...1...2...3...4...5...6...7...8...9...10	Bounce #3 added RGB(440, 372, 296)
+0...1...2...3...4...5...6...7...8...9...10	Bounce #4 added RGB(71, 57, 43)
+0...1...2...3...4...5...6...7...8...9...10	Bounce #5 added RGB(12, 9, 7)
+0...1...2...3...4...5...6...7...8...9...10	Bounce #6 added RGB(2, 2, 1)
+0...1...2...3...4...5...6...7...8...9...10	Bounce #7 added RGB(0, 0, 0)
+Build Patch/Sample Hash Table(s).....Done<0.0030 sec>
+0...1...2...3...4...5...6...7...8...9...10FinalLightFace Done
+0 of 0 (0% of) surface lights went in leaf ambient cubes.
+0...1...2...3...4...5...6...7...8...9...10Writing leaf ambient...done
+Computing static prop lighting : 00...1...2...3...4...5...6...7...8...9...10
+Ready to Finish
+
+Object names       Objects/Maxobjs  Memory / Maxmem  Fullness 
+------------       ---------------  ---------------  -------- 
+models                   4/1024          192/49152    ( 0.4%) 
+brushes                502/8192         6024/98304    ( 6.1%) 
+brushsides            4104/81920       32832/655360   ( 5.0%) 
+planes                2346/65536       46920/1310720  ( 3.6%) 
+vertexes              2677/65536       32124/786432   ( 4.1%) 
+nodes                  458/65536       14656/2097152  ( 0.7%) 
+texinfos               417/12288       30024/884736   ( 3.4%) 
+texdata                 20/4096          640/131072   ( 0.5%) 
+dispinfos              236/0           41536/0        ( 0.0%) 
+disp_verts            7468/0          149360/0        ( 0.0%) 
+disp_tris            10240/0           20480/0        ( 0.0%) 
+disp_multiblend          0/0               0/0        ( 0.0%) 
+disp_lmsamples       55152/0           55152/0        ( 0.0%) 
+faces                 1152/65536       64512/3670016  ( 1.8%) 
+hdr faces             1152/65536       64512/3670016  ( 1.8%) 
+origfaces              914/65536       51184/3670016  ( 1.4%) 
+facebrushes             98/0             196/0        ( 0.0%) 
+facebrushlists        1152/0            4608/0        ( 0.0%) 
+leaves                 463/65536       14816/2097152  ( 0.7%) 
+leaffaces             1687/65536        3374/131072   ( 2.6%) 
+leafbrushes           1210/65536        2420/131072   ( 1.8%) 
+areas                    2/1024           16/8192     ( 0.2%) 
+surfedges             8772/512000      35088/2048000  ( 1.7%) 
+edges                 6260/256000      25040/1024000  ( 2.4%) 
+LDR worldlights          0/8192            0/819200   ( 0.0%) 
+HDR worldlights          2/8192          200/819200   ( 0.0%) 
+leafwaterdata            0/32768           0/393216   ( 0.0%) 
+waterstrips             90/32768         900/327680   ( 0.3%) 
+waterverts               0/65536           0/786432   ( 0.0%) 
+waterindices          1530/65536        3060/131072   ( 2.3%) 
+cubemapsamples           9/1024          144/16384    ( 0.9%) 
+overlays                 0/1024            0/360448   ( 0.0%) 
+LDR lightdata         [variable]           0/0        ( 0.0%) 
+HDR lightdata         [variable]     1073400/0        ( 0.0%) 
+visdata               [variable]       19579/16777216 ( 0.1%) 
+entdata               [variable]        7624/393216   ( 1.9%) 
+LDR ambient table      463/65536        1852/262144   ( 0.7%) 
+HDR ambient table      463/65536        1852/262144   ( 0.7%) 
+LDR leaf ambient       463/65536       12964/1835008  ( 0.7%) 
+HDR leaf ambient      2222/65536       62216/1835008  ( 3.4%) 
+occluders                0/0               0/0        ( 0.0%) 
+occluder polygons        0/0               0/0        ( 0.0%) 
+occluder vert ind        0/0               0/0        ( 0.0%) 
+detail props          [variable]           1/12       ( 8.3%) 
+static props          [variable]           1/88440    ( 0.0%) 
+pakfile               [variable]     9941185/0        ( 0.0%) 
+physics               [variable]      183345/4194304  ( 4.4%) 
+physics terrain       [variable]       12510/1048576  ( 1.2%) 
+
+Level flags = 7e
+
+Total triangle count: 2802
+Writing d:\onedrive\projects\weaponscript\ffa_areate.bsp
+MSG_FILEWRITE - Filesystem was asked to write to 'd:\onedrive\projects\weaponscript\ffa_areate.bsp', but we don't own that location. Allowing...
+1 minute, 23 seconds elapsed
