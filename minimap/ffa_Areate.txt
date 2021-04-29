@@ -1,0 +1,7 @@
+"ffa_Areate"
+{
+	"material"	"overviews/ffa_Areate"
+	"pos_x"		"-1025"
+	"pos_y"		"1025"
+	"scale"		"2.0"
+}
