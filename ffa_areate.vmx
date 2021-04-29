@@ -2,7 +2,7 @@ versioninfo
 {
 	"editorversion" "400"
 	"editorbuild" "8456"
-	"mapversion" "531"
+	"mapversion" "530"
 	"formatversion" "100"
 	"prefab" "0"
 }
@@ -86,7 +86,7 @@ viewsettings
 world
 {
 	"id" "1"
-	"mapversion" "531"
+	"mapversion" "530"
 	"classname" "worldspawn"
 	"detailmaterial" "detail/detailsprites"
 	"detailvbsp" "detail.vbsp"
@@ -105761,7 +105761,7 @@ entity
 {
 	"id" "400899"
 	"classname" "prop_static"
-	"angles" "0 91.5 0"
+	"angles" "0 90 0"
 	"disableflashlight" "0"
 	"disableselfshadowing" "0"
 	"disableshadowdepth" "0"
@@ -112140,8 +112140,8 @@ cameras
 	"activecamera" "0"
 	camera
 	{
-		"position" "[-59.9437 203.214 132.565]"
-		"look" "[-51.1112 425.941 -13.2982]"
+		"position" "[-163.706 -84.1223 278.453]"
+		"look" "[31.8435 60.7294 170.104]"
 	}
 	camera
 	{
