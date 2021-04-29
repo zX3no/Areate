@@ -5,8 +5,10 @@
 * `!gun !pistol !knife` 
   
   Syntax: `!command weapon`
-
-  Gives the player a weapon of their choice. See list of available weapons.
+  
+  Gives the player a weapon of their choice. 
+  
+  [A full list of all possible weapon commands and their abbreviations](https://github.com/zX3no/WeaponScript/blob/main/vscripts/give_weapons.nut).
 * `!random`
   
   Mode: `Primary, Secondary, Knife, Competitive`
