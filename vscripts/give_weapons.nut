@@ -104,6 +104,7 @@ function giveBotWeapons(id)
 	if( !("bot" in s) ) s.bot <- s.networkid == "BOT";
 	return s;
 }
+
 ::OnGameEvent_player_say <- function( data )
 {
 	local msg = data.text				// get the chat message
@@ -122,6 +123,7 @@ function trueIsOn(bool)
 	if(bool) return "\x04 On";
 	else return "\x08 Off";
 }
+
 function SayCommand( msg, id)
 {
 	local buffer = split( msg, " " )

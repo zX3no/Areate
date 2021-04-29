@@ -15,15 +15,6 @@
 
 ::competitiveList <- ["weapon_ak47","weapon_m4a1","weapon_m4a1_silencer","weapon_awp"];
 
-/*
-::rifleList <- ["weapon_ak47","weapon_m4a1","weapon_m4a1_silencer","weapon_aug","weapon_sg556",
-"weapon_galilar","weapon_famas","weapon_awp","weapon_ssg08","weapon_g3sg1","weapon_scar20"];
-
-::smgList <- ["weapon_mac10","weapon_mp9","weapon_mp7","weapon_mp5sd","weapon_p90","weapon_ump45","weapon_bizon"];
-
-::heavyList <- ["weapon_nova","weapon_xm1014","weapon_sawedoff","weapon_mag7","weapon_m249","weapon_negev"];
-*/
-
 ::primaryList <- ["weapon_ak47","weapon_m4a1","weapon_m4a1_silencer","weapon_aug","weapon_sg556",
 "weapon_galilar","weapon_famas","weapon_awp","weapon_ssg08","weapon_g3sg1","weapon_scar20",
 "weapon_mac10","weapon_mp9","weapon_mp7","weapon_mp5sd","weapon_p90","weapon_ump45","weapon_bizon",
@@ -38,3 +29,11 @@
 "weapon_knife_widowmaker","weapon_knife_css","weapon_knife_skeleton","weapon_knifegg","weapon_knife_outdoor",
 "weapon_knife_cord","weapon_knife_canis"];
 
+/*
+::rifleList <- ["weapon_ak47","weapon_m4a1","weapon_m4a1_silencer","weapon_aug","weapon_sg556",
+"weapon_galilar","weapon_famas","weapon_awp","weapon_ssg08","weapon_g3sg1","weapon_scar20"];
+
+::smgList <- ["weapon_mac10","weapon_mp9","weapon_mp7","weapon_mp5sd","weapon_p90","weapon_ump45","weapon_bizon"];
+
+::heavyList <- ["weapon_nova","weapon_xm1014","weapon_sawedoff","weapon_mag7","weapon_m249","weapon_negev"];
+*/
