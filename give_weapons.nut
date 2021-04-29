@@ -33,8 +33,10 @@ function OnPostSpawn()
 		ScriptPrintMessageChatAll(" \x04 Type !help for command help!");
 	}
 	SendToConsole("mp_respawn_immunitytime 0")
-	//SendToConsole("bot_kick")
-	// reset all
+	if(!enableBots)
+	{
+		SendToConsole("bot_kick")
+	}
 	foreach(ply in ::VS.GetAllPlayers())
 	{
 		local s = _init_scope(ply);
@@ -76,6 +78,7 @@ function OnPostSpawn()
 		::delay("::VS.Events.ForceValidateUserid(activator)", i*ft, ::ENT_SCRIPT, v);
 
 }.bindenv(this);
+
 function giveBotWeapons(id)
 {
 	local player = VS.GetPlayerByUserid(id);
@@ -84,9 +87,9 @@ function giveBotWeapons(id)
 		
 	equipPlayerArmor(player);
 
-	//EquipWeapon("weapon_ak47",60,player)
-		
-	EquipWeapon("weapon_glock",60,player)
+	EquipWeapon("weapon_ak47",60,player)
+
+	EquipWeapon("weapon_deagle",60,player)
 	
 	EquipWeapon("weapon_knife",60,player)
 }
@@ -162,11 +165,12 @@ function SayCommand( msg, id)
                     break;
 				case "hs":
 				case "headshot":
+				case "headshotonly":
 					HeadshotOnly();
 					return "false";
 					break;
 				case "arm":
-					ScriptPrintMessageChatAll("Arm attached");
+					ScriptPrintMessageChatAll(" \x07 Arm attached");
 					return "false";
 					break;
 				case "a":
@@ -193,26 +197,28 @@ function SayCommand( msg, id)
 						case "3":
 						ScriptPrintMessageChatAll(" \x04 Page 3/3");
 						ScriptPrintMessageChatAll(" \x04 --------------------------------------------------------------------------------------");
+						ScriptPrintMessageChatAll(" \x04 !bot |\x05 toggle bots");
 						ScriptPrintMessageChatAll(" \x04 !reset: \x05 Players are assigned id's on connect, however sometimes these can be broken from players reconnecting or bot's taking id's for themeselves. \x03 ¯\\_\x28ツ\x29_/¯");
 						ScriptPrintMessageChatAll(" \x07 Use !reset to fix this!"); 
 						break;
 						case "2":
 						ScriptPrintMessageChatAll(" \x04 Page 2/3");
 						ScriptPrintMessageChatAll(" \x04 --------------------------------------------------------------------------------------");
-						ScriptPrintMessageChatAll(" \x04 !random: \x05 toggles random weapons eg. !random knife");
+						ScriptPrintMessageChatAll(" \x04 !random \x05 toggles random weapons eg. !random knife");
 						ScriptPrintMessageChatAll(" \x05 - options: primary \x04|\x05  secondary \x04|\x05 knife \x04|\x05 competitive")
-						ScriptPrintMessageChatAll(" \x04 !armor |\x05 toggles armor");
-						ScriptPrintMessageChatAll(" \x04 !bumpmines |\x05 toggle bump mines");
-						ScriptPrintMessageChatAll(" \x04 !helmet |\x05 toggles helmets");
-						ScriptPrintMessageChatAll(" \x04 !hs |\x05 toggle headshot only mode");
+						ScriptPrintMessageChatAll(" \x04 !armor \x05 toggles armor");
+						ScriptPrintMessageChatAll(" \x04 !bumpmines\x05 toggles bump mines");
+						ScriptPrintMessageChatAll(" \x04 !helmet \x05 toggles helmets");
+						ScriptPrintMessageChatAll(" \x04 !hs \x05 toggles headshot only");
 						break;
 						case "1":
 						default:
 						ScriptPrintMessageChatAll(" \x04 Page 1/3");
 						ScriptPrintMessageChatAll(" \x04 --------------------------------------------------------------------------------------");
-						ScriptPrintMessageChatAll(" \x04 !gun GunName |\x05 eg. !gun ak \x04|\x05 use !gun to list available guns");
-						ScriptPrintMessageChatAll(" \x04 !pistol pistolName |\x05 eg. !pistol deagle \x04|\x05 use !pistol to list available pistols");
-						ScriptPrintMessageChatAll(" \x04 !knife knifeName |\x05 eg. !knife butterfly \x04|\x05 use !knife to list available knives");
+						ScriptPrintMessageChatAll(" \x04 Write the command without arguments to list weapons \x05 eg. !gun");
+						ScriptPrintMessageChatAll(" \x04 !gun Name ‎‎\x05 eg. !gun ak");
+						ScriptPrintMessageChatAll(" \x04 !pistol Name \x05 eg. !pistol deagle");
+						ScriptPrintMessageChatAll(" \x04 !knife Name \x05 eg. !knife butterfly");
 						break;
 					}
 					
@@ -221,7 +227,7 @@ function SayCommand( msg, id)
 					break;
 				case "helm":
 				case "helmet":
-					if(equipHelmet == true)
+					if(equipHelmet)
 					{
 						ScriptPrintMessageChatAll("Helmet is: Off");
 						equipHelmet = false;
@@ -252,8 +258,24 @@ function SayCommand( msg, id)
 					break;
 				case "reset":
 					reset();
-					
+					return "false";
 					break;
+				case "bot":
+				case "bots":
+					if(enableBots)
+					{
+						SendToConsole("bot_kick");
+						ScriptPrintMessageChatAll(" \x03 Bots: \x05 Off");
+						enableBots = false;
+					}
+					else
+					{
+						SendToConsole("bot_quota 4");
+						ScriptPrintMessageChatAll(" \x03 Bots: \x08 On");
+						enableBots = true;
+					}
+					break;
+					return "false";
 				case "random":
 				case "r":
 					switch(val)
@@ -278,6 +300,7 @@ function SayCommand( msg, id)
 						//rand secondary
 						case "s":
 						case "secondary":
+						case "sec":
 						if(!randomSecondary)
 						{
 							ScriptPrintMessageChatAll(" \x03 Random Secondary: \x05 On");
@@ -708,26 +731,21 @@ function equipPlayerArmor(player)
 
 function giveServerWeapons()	//Called on player spawn - fired once - when more than one person spawns this would fire multiple times
 {
-	
 	if(randomPrimary)
 	{
-		//max index 10
-		::primary <- rifleList[rndint(rifleList.len())];
+		::primary <- primaryList[rndint(primaryList.len())];
 	}
 	else if(randomCompetitive)
 	{
-		//max index 3
 		::primary <- competitiveList[rndint(competitiveList.len())];
 	}
 
 	if(randomSecondary)
 	{
-		//max index 9
 		::secondary <- pistolList[rndint(pistolList.len())];
 	}
 	if(randomKnife)
 	{
-		//max index 20
 		::knife <- knifeList[rndint(knifeList.len())];
 	}
 	for(local i = 0; i < 13; i+=4)
@@ -804,8 +822,7 @@ function reset()
                       "null", "weapon_ak47","weapon_deagle","weapon_knife_m9_bayonet",
                       "null", "weapon_ak47","weapon_deagle","weapon_knife_m9_bayonet",];
 	
-	ScriptPrintMessageChatAll("Playerid "+playerEquipment[i]+" is now null");
-
+	ScriptPrintMessageChatAll(" \x07 ALL ID'S ARE RESET");
 	//New method resets weapons too	  
 	/*				  
     for(local i = 0; i < 13; i+=4)
@@ -896,4 +913,15 @@ function ServerCommands()	//This is not used because logic auto is better		//goo
 	SendToConsole("mp_ct_default_secondary 0")
 	SendToConsole("mp_t_default_primary 0")
 	SendToConsole("mp_t_default_secondary 0")
+
+	//All talk
+	/*
+	sv_alltalk 1
+	sv_auto_full_alltalk_during_warmup_half_end 1 
+	sv_deadtalk 1 
+	sv_full_alltalk 1
+	sv_talk_after_dying_time 1 
+	sv_talk_enemy_dead 1 
+	sv_talk_enemy_living 1 
+	*/
 }
