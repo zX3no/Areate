@@ -241,7 +241,7 @@ function SayCommand( msg, id)
 					RandomWeapons(val);
 					return "false";
                 default:
-                    ScriptPrintMessageChatAll("Invalid command.");
+                    ScriptPrintMessageChatAll(" \x07 Invalid command.");
 					return "false";
             }
 			
