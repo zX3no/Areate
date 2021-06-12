@@ -1,7 +1,5 @@
-::playerEquipment <- ["null", "weapon_ak47","weapon_deagle","weapon_knife_m9_bayonet",
-                      "null", "weapon_ak47","weapon_deagle","weapon_knife_m9_bayonet",
-                      "null", "weapon_ak47","weapon_deagle","weapon_knife_m9_bayonet",
-                      "null", "weapon_ak47","weapon_deagle","weapon_knife_m9_bayonet",];
+::Players <- [];
+
 ::equipArmor <- true;
 ::equipHelmet <- true;
 ::headshotOnly <- false;
@@ -20,7 +18,7 @@
 "weapon_mac10","weapon_mp9","weapon_mp7","weapon_mp5sd","weapon_p90","weapon_ump45","weapon_bizon",
 "weapon_nova","weapon_xm1014","weapon_sawedoff","weapon_mag7","weapon_m249","weapon_negev"];
 
-::pistolList <- ["weapon_usp_silencer","weapon_hkp2000","weapon_glock","weapon_tec9",
+::secondaryList <- ["weapon_usp_silencer","weapon_hkp2000","weapon_glock","weapon_tec9",
 "weapon_fiveseven","weapon_elite","weapon_deagle","weapon_p250","weapon_cz75a","weapon_revolver"];
 
 ::knifeList <- ["weapon_knife_m9_bayonet","weapon_bayonet","weapon_knife_butterfly","weapon_knife_karambit",
@@ -29,12 +27,6 @@
 "weapon_knife_widowmaker","weapon_knife_css","weapon_knife_skeleton","weapon_knifegg","weapon_knife_outdoor",
 "weapon_knife_cord","weapon_knife_canis"];
 
-function rndint(max) {
-    // Generate a pseudo-random integer between 0 and max - 1, inclusive
-	local roll = rand() % max;
-    //local roll = 1.0 * max * rand() / RAND_MAX;
-    return roll.tointeger();
-}
 
 /*
 ::rifleList <- ["weapon_ak47","weapon_m4a1","weapon_m4a1_silencer","weapon_aug","weapon_sg556",

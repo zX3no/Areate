@@ -27,39 +27,36 @@ IncludeScript("vs_library")
 
 class CSPlayer
 {
-	PlayerID = null;
+	ID = null;
 	Primary = "weapon_ak47";
 	Secondary = "weapon_deagle";
 	Knife = "weapon_knife_m9_bayonet";
 
 	constructor(id) 
 	{
-		PlayerID = id;
+		ID = id;
     }
 
-	function GetPlayerID()
+	function GetUserID()
 	{
-		return PlayerID.tostring();
+		return ID.tostring();
 	}
 }
-
-//P.push(CSPlayer(id))
-//Players
-::P <- [];
 
 function OnPostSpawn() 
 {
 	mainScript = self.GetScriptScope();
 }
 
-//TODO the returns may be broken?
-//TODO give bots they same random weapons as us
-//Maybe bots should get random comp weapons by default
+//TODO bots could have a class that inherits from players that way 
+//i don't need more funcitons and they can have the same behaviour 
+
 ::OnGameEvent_round_start <- function(data)
 {
 	if(ScriptGetRoundsPlayed() == 0)
 		ScriptPrintMessageChatAll(" \x04 Type !help for command help!");
 
+	//TODO why is this here?
 	SendToConsole("mp_respawn_immunitytime 0")
 
 	if(!enableBots)
@@ -68,53 +65,65 @@ function OnPostSpawn()
 	foreach(player in ::VS.GetAllPlayers())
 	{
 		local s = _init_scope(player);
-
-		if(!s.bot && s.networkid != "BOT")
+		if(AssignUserID(s.userid) && !s.bot)
 		{
-			for(local i = 0; i < 13; i+=4)
-			{
-				if(playerEquipment[i] == s.userid)
-					break;
-				
-				else if(playerEquipment[i] == "null" &&s.userid != "" && s.userid != null)
-				{
-					ScriptPrintMessageChatAll(" \x04 Assigning ID \x07"+s.userid+"\x04 to \x07"+s.name);
-
-					playerEquipment[i] = s.userid;
-					//This is only called when the player first joins or on reset()
-					givePlayerWeapons(player, s.userid)
-					break;
-				}
-			}
+			Players.push(CSPlayer(s.userid));
+			ScriptPrintMessageChatAll(" \x04 Assigning ID \x07"+s.userid+"\x04 to \x07"+s.name);
 		}
-		else giveBotWeapons(player);
+		else if(s.bot)
+			GiveBotWeapons(player);
 	}
-	giveServer();
-	/*
-	//this might be redundant
-	local ft = FrameTime();
-	foreach( i,v in ::VS.GetAllPlayers() )
-		::delay("::VS.Events.ForceValidateUserid(activator)", i*ft, ::ENT_SCRIPT, v);
-	*/
 
+	GiveServer();
+	//reminder to re-add user id validation if it's broken
 }.bindenv(this);
 
-function giveBotWeapons(player)
+function AssignUserID(id)
 {
+	if(!Players.len())
+		return true;
+	
+	for(local i = 0; i < Players.len(); i++)
+	{
+		if(Players[i].ID == id)
+			return false;
+		else
+			return true;
+	}
+}
+
+function GiveBotWeapons(player)
+{
+	ScriptPrintMessageChatAll("giving bot weapons")
 	EntFire("equip_strip", "Use", "", 0, player);
 		
-	equipPlayerArmor(player);
+	EquipPlayerArmor(player);
 
 	if(randomPrimary)
 		EquipWeapon(primaryList[rndint(primaryList.len())], 60, player);
 	else
 		EquipWeapon(competitiveList[rndint(competitiveList.len())], 60, player);
 
-	EquipWeapon(pistolList[rndint(pistolList.len())], 60, player);
+	EquipWeapon(secondaryList[rndint(secondaryList.len())], 60, player);
 
 	EquipWeapon(knifeList[rndint(knifeList.len())], 60, player);	
 	EntFire("weapon_knife", "addoutput", "classname weapon_knifegg");
+}
 
+//Only called when the player types a weapon in chat
+function GivePlayerWeapons(player, id)
+{
+	for(local i = 0; i < Players.len(); i++)
+    {
+        if(Players[i].ID == id)
+        {
+			EquipPlayerArmor(player);
+            EquipWeapon(Players[i].Primary, 60, player)
+            EquipWeapon(Players[i].Secondary, 60, player)
+            EquipWeapon(Players[i].Knife, 60, player)
+            EntFire("weapon_knife", "addoutput", "classname weapon_knifegg")
+        }
+    }
 }
 
 //WTF does this do?
@@ -141,14 +150,14 @@ function giveBotWeapons(player)
 	if(msg.slice(0,1) != "!")
 		return
 	
-	local result = SMain.SayCommand(msg.slice(1), data.userid);
-
+	local result = ParseUserInput(msg.slice(1), data.userid);
 	local player = VS.GetPlayerByUserid(data.userid);
 
 	//sometimes i don't want to update the players weapons
 	if(result != null && result != "false") 
-		SMain.givePlayerWeapons(player, data.userid);
-}
+		GivePlayerWeapons(player, data.userid);
+
+}.bindenv(this)
 
 function settingState(option, state)
 {
@@ -160,40 +169,38 @@ function settingState(option, state)
 	return !state;
 }
 
-function SayCommand(msg, id)
+function ParseUserInput(msg, id)
 {
 	local buffer = split(msg, " ")
-	local val, cmd = buffer[0]
+	local val, cmd = buffer[0].tolower();
 
 	if(buffer.len() > 1)
         val = buffer[1];
 	
     //TODO move some of this shit into other functions 
-	//For every player?
-    for(local i = 0; i < 13; i+=4)
+	for(local i = 0; i < Players.len(); i++)
     {
-        if(id == playerEquipment[i])
+        if(Players[i].ID == id)
         {
-            switch(cmd.tolower())
+            switch(cmd)
             {
                 case "g":
                 case "gun":
 					if(SetPrimary(val,i))
-						ScriptPrintMessageChatAll(" \x04 Primary: \x05"+ playerEquipment[i+1]);
+						return "true";
 					else 
 						return "false";
-					return "true";
 				case "p":
 				case "pistol":
-					if(SetPistol(val,i))
-						ScriptPrintMessageChatAll(" \x04 Pistol: \x05"+ playerEquipment[i+2]);
+					if(SetSecondary(val,i))
+						return "true";
 					else 
 						return "false";
 					return "true";
 				case "k":
 				case "knife":
 					if(SetKnife(val,i))
-						ScriptPrintMessageChatAll(" \x04 Knife: \x05"+ playerEquipment[i+3]);
+						return "true";
 					else 
 						return "false";
 				return "true";
@@ -281,116 +288,117 @@ function SetPrimary(val, i)
 		return false;
 	}
 
-	switch (val.tolower())
+	switch (val)
 	{
 		//Rifle
 		case "ak47":
 		case "ak":
-			playerEquipment[i + 1] = "weapon_ak47";
+			Players[i].Primary = "weapon_ak47";
 			break;
 		case "m4":
 		case "m4a4":
-			playerEquipment[i + 1] = "weapon_m4a1";
+			 Players[i].Primary = "weapon_m4a1";
 			break;
 		case "m4a1":
 		case "m4a1s":
-			playerEquipment[i + 1] = "weapon_m4a1_silencer";
+			 Players[i].Primary = "weapon_m4a1_silencer";
 			break;
 		case "aug":
-			playerEquipment[i + 1] = "weapon_aug";
+			 Players[i].Primary = "weapon_aug";
 			break;
 		case "sg":
 		case "sg553":
 		case "codgun":
-			playerEquipment[i + 1] = "weapon_sg556";
+			 Players[i].Primary = "weapon_sg556";
 			break;
 		case "galil":
 		case "gal":
-			playerEquipment[i + 1] = "weapon_galilar";
+			 Players[i].Primary = "weapon_galilar";
 			break;
 		case "fam":
 		case "famas":
-			playerEquipment[i + 1] = "weapon_famas";
+			 Players[i].Primary = "weapon_famas";
 			break;
 		case "awp":
-			playerEquipment[i + 1] = "weapon_awp";
+			 Players[i].Primary = "weapon_awp";
 			break;
 		case "ssg":
 		case "ssg08":
 		case "scout":
 		case "scoot":
-			playerEquipment[i + 1] = "weapon_ssg08";
+			Players[i].Primary = "weapon_ssg08";
 			break;
 		case "g3sg1":
 		case "dakdak":
 		case "dak":
 		case "g3":
-			playerEquipment[i + 1] = "weapon_g3sg1";
+			Players[i].Primary = "weapon_g3sg1";
 		case "scar":
 		case "scar20":
-			playerEquipment[i + 1] = "weapon_scar20";
+			Players[i].Primary = "weapon_scar20";
 			break;
 			
 		//Heavy
 		case "nova":
-			playerEquipment[i + 1] = "weapon_nova";
+			Players[i].Primary = "weapon_nova";
 			break;
 		case "xm":
 		case "xm1014":
-			playerEquipment[i + 1] = "weapon_xm1014";
+			Players[i].Primary = "weapon_xm1014";
 			break;
 		case "saw":
 		case "sawedoff":
-			playerEquipment[i + 1] = "weapon_sawedoff";
+			Players[i].Primary = "weapon_sawedoff";
 			break;
 		case "mag":
 		case "mag7":
-			playerEquipment[i + 1] = "weapon_mag7";
+			Players[i].Primary = "weapon_mag7";
 			break;
 		case "m249":
 		case "m2":
 		case "m24":
-			playerEquipment[i + 1] = "weapon_m249";
+			Players[i].Primary = "weapon_m249";
 			break;
 		case "negev":
 		case "neg":
-			playerEquipment[i + 1] = "weapon_negev";
+			Players[i].Primary = "weapon_negev";
 			break;
 			
 		//Smg
 		case "mac":
 		case "mac10":
-			playerEquipment[i + 1] = "weapon_mac10";
+			Players[i].Primary = "weapon_mac10";
 			break;	
 		case "mp9":
-			playerEquipment[i + 1] = "weapon_mp9";
+			Players[i].Primary = "weapon_mp9";
 			break;
 		case "mp7":
-			playerEquipment[i + 1] = "weapon_mp7";
+			Players[i].Primary = "weapon_mp7";
 			break;
 		case "mp5":
 		case "mp5sd":
-			playerEquipment[i + 1] = "weapon_mp5sd";
+			Players[i].Primary = "weapon_mp5sd";
 			break;			
 		case "p90":
-			playerEquipment[i + 1] = "weapon_p90";
+			Players[i].Primary = "weapon_p90";
 			break;
 		case "ump":
 		case "ump45":
-			playerEquipment[i + 1] = "weapon_ump45";
+			Players[i].Primary = "weapon_ump45";
 			break;
 		case "bizon":
 		case "pp":
 		case "ppbizon":
-			playerEquipment[i + 1] = "weapon_bizon";
+			Players[i].Primary = "weapon_bizon";
 			break;	
 		default:
 			ScriptPrintMessageChatAll(" \x07 " + val + " is not a gun dumbass.");
 			return false;
 	}
+	ScriptPrintMessageChatAll(" \x04 Primary: \x05"+ Players[i].Primary);
 	return true;
 }
-function SetPistol(val, i)
+function SetSecondary(val, i)
 {
 	if(val == null)
 	{
@@ -400,71 +408,73 @@ function SetPistol(val, i)
 		return false;
 	}
 
-	switch (val.tolower())
+	switch (val)
 	{
 		case "usp":
 		case "usp-s":
-			playerEquipment[i + 2] = "weapon_usp_silencer";
+			Players[i].Secondary = "weapon_usp_silencer";
 			break;
 			
 		case "p2000":
 		case "p2k":
 		case "p200":
-			playerEquipment[i + 2] = "weapon_hkp2000";
+			Players[i].Secondary = "weapon_hkp2000";
 			break;
 			
 		case "glock":
 		case "glock18":
-			playerEquipment[i + 2] = "weapon_glock";
+			Players[i].Secondary = "weapon_glock";
 			break;	
 			
 		case "tec":
 		case "tec9":
-			playerEquipment[i + 2] = "weapon_tec9";
+			Players[i].Secondary = "weapon_tec9";
 			break;
 			
 		case "fiveseven":
 		case "57":
 		case "five":
 		case "seven":
-			playerEquipment[i + 2] = "weapon_fiveseven";
+			Players[i].Secondary = "weapon_fiveseven";
 			break;
 		
 		case "dual":
 		case "dualies":
 		case "berettas":
 		case "dualberettas":
-			playerEquipment[i + 2] = "weapon_elite";
+			Players[i].Secondary = "weapon_elite";
 			break;
 		
 		case "deagle":
 		case "deag":
-			playerEquipment[i + 2] = "weapon_deagle";
+			Players[i].Secondary = "weapon_deagle";
 			break;
 		
 		case "p250":
 		case "p25":
 		case "p2":
-			playerEquipment[i + 2] = "weapon_p250";
+			Players[i].Secondary = "weapon_p250";
 			break;
 		
 		case "cz":
 		case "cz75":
 		case "cz75a":
-			playerEquipment[i + 2] = "weapon_cz75a";
+			Players[i].Secondary = "weapon_cz75a";
 			break;
 			
 		case "rev":
 		case "revolver":
 		case "yeehaw":
 		case "r8":
-			playerEquipment[i + 2] = "weapon_revolver";
+			Players[i].Secondary = "weapon_revolver";
 			break;
 			
 		default:
 			ScriptPrintMessageChatAll(" \x07 " + val + " is not a pistol dumbass.");
 			return false;
 	}
+
+	ScriptPrintMessageChatAll(" \x04 Pistol: \x05"+ Players[i].Secondary);
 	return true;
 }
 
@@ -479,38 +489,38 @@ function SetKnife(val, i)
 		return false;
 	}
 
-	switch (val.tolower())
+	switch (val)
 	{
 		case "m9":
-			playerEquipment[i + 3] = "weapon_knife_m9_bayonet";
+			Players[i].Knife = "weapon_knife_m9_bayonet";
 			break;
 		case "bay":
 		case "bayonet":
-			playerEquipment[i + 3] = "weapon_bayonet";
+			Players[i].Knife = "weapon_bayonet";
 			break;
 		case "butt":
 		case "butterfly":
-			playerEquipment[i + 3] = "weapon_knife_butterfly";
+			Players[i].Knife = "weapon_knife_butterfly";
 			break;
 		case "karambit":
 		case "kara":
-			playerEquipment[i + 3] = "weapon_knife_karambit";
+			Players[i].Knife = "weapon_knife_karambit";
 			break;
 		case "flip":
-			playerEquipment[i + 3] = "weapon_knife_flip";
+			Players[i].Knife = "weapon_knife_flip";
 			break;
 		case "falcon":
 		case "falchion":
 		case "fal":
 		case "falc":
-			playerEquipment[i + 3] = "weapon_knife_falchion";
+			Players[i].Knife = "weapon_knife_falchion";
 			break;
 		case "gut":
-			playerEquipment[i + 3] = "weapon_knife_gut";
+			Players[i].Knife = "weapon_knife_gut";
 			break;
 		case "hunt":
 		case "huntsman":
-			playerEquipment[i + 3] = "weapon_knife_tactical";
+			Players[i].Knife = "weapon_knife_tactical";
 			break;
 		case "buttplugs":
 		case "buttplug":
@@ -519,90 +529,69 @@ function SetKnife(val, i)
 		case "dagger":
 		case "shadowdaggers":
 		case "shadowdagger":
-			playerEquipment[i + 3] = "weapon_knife_push";
+			Players[i].Knife = "weapon_knife_push";
 			break;
 		case "bowie":
 		case "bow":
-			playerEquipment[i + 3] = "weapon_knife_survival_bowie";
+			Players[i].Knife = "weapon_knife_survival_bowie";
 			break;
 		case "ursus":
 		case "ur":
-			playerEquipment[i + 3] = "weapon_knife_ursus";
+			Players[i].Knife = "weapon_knife_ursus";
 			break;
 		case "navaja":
 		case "nava":
-			playerEquipment[i + 3] = "weapon_knife_gypsy_jackknife";
+			Players[i].Knife = "weapon_knife_gypsy_jackknife";
 			break;
 		case "stiletto":
 		case "stil":
-			playerEquipment[i + 3] = "weapon_knife_stiletto";
+			Players[i].Knife = "weapon_knife_stiletto";
 			break;
 		case "talon":
 		case "tal":
-			playerEquipment[i + 3] = "weapon_knife_widowmaker";
+			Players[i].Knife = "weapon_knife_widowmaker";
 			break;
 		case "classic":
 		case "class":
 		case "css":
-			playerEquipment[i + 3] = "weapon_knife_css";
+			Players[i].Knife = "weapon_knife_css";
 			break;
 		case "skel":
 		case "skeleton":
-			playerEquipment[i + 3] = "weapon_knife_skeleton";
+			Players[i].Knife = "weapon_knife_skeleton";
 			break;
 		case "gold":
-			playerEquipment[i + 3] = "weapon_knifegg";
+			Players[i].Knife = "weapon_knifegg";
 			break;
 		case "nomad":
 		case "nom":
 		case "no":
-			playerEquipment[i + 3] = "weapon_knife_outdoor";
+			Players[i].Knife = "weapon_knife_outdoor";
 			break;
 		case "paracord":
 		case "para":
-			playerEquipment[i + 3] = "weapon_knife_cord";
+			Players[i].Knife = "weapon_knife_cord";
 			break;	
 		case "survival":
 		case "sur":
-			playerEquipment[i + 3] = "weapon_knife_canis";
+			Players[i].Knife = "weapon_knife_canis";
 			break;			
 		case "ghost":
-			playerEquipment[i + 3] = "weapon_knife_ghost";
+			Players[i].Knife = "weapon_knife_ghost";
 			break;
 		default:
 			ScriptPrintMessageChatAll(" \x07 " + val + " is not a knife dumbass.");
 			return false;
 	}
+	ScriptPrintMessageChatAll(" \x04 Knife: \x05"+ Players[i].Knife);
 	return true;
 }
 
-//Only called when the player types a weapon in chat
-function givePlayerWeapons(player, id)
-{
-	for(local i = 0; i < 13; i+=4)
-    {
-        if(playerEquipment[i] == id)
-        {
-			EntFire("equip_strip", "Use", "", 0, player);
-			
-			equipPlayerArmor(player);
-
-			//Primary
-            EquipWeapon(playerEquipment[i+1], 60, player)
-			
-			//Secondary
-            EquipWeapon(playerEquipment[i+2], 60, player)
-
-			//Knife
-            EquipWeapon(playerEquipment[i+3], 60, player)
-            EntFire("weapon_knife", "addoutput", "classname weapon_knifegg")
-        }
-    }
-}
-
 //TODO maybe rename to equipEquipment
-function equipPlayerArmor(player)
+function EquipPlayerArmor(player)
 {
+	EntFire("equip_strip", "Use", "", 0, player);
+
 	if(equipArmor && equipHelmet)
 		EquipWeapon("item_assaultsuit",60,player);
 	else if(equipArmor)
@@ -618,14 +607,8 @@ function equipPlayerArmor(player)
 }
 
 function giveServerWeapons()
-{
-
-}
-//TODO add random weapons to playerEquipment so that they can be kept after random is turned off
-//TODO i think this is causing problems
-//Called on player spawn - fired once - when more than one person spawns this would fire multiple times
 //TODO RENAME THIS AND DELETE THING FROM MAP
-function giveServer()	
+function GiveServer()	
 {
 	if(randomPrimary)
 		::primary <- primaryList[rndint(primaryList.len())];
@@ -633,53 +616,39 @@ function giveServer()
 		::primary <- competitiveList[rndint(competitiveList.len())];
 
 	if(randomSecondary)
-		::secondary <- pistolList[rndint(pistolList.len())];
+		::secondary <- secondaryList[rndint(secondaryList.len())];
 
 	if(randomKnife)
 		::knife <- knifeList[rndint(knifeList.len())];
 
-	for(local i = 0; i < 13; i+=4)
+	for(local i = 0; i < Players.len(); i++)
 	{
-		if(playerEquipment[i] != "null")
-		{
-			local player = VS.GetPlayerByUserid(playerEquipment[i]);
-				
-			EntFire("equip_strip", "Use", "", 0, player);
-				
-			equipPlayerArmor(player);
+		local player = VS.GetPlayerByUserid(Players[i].ID);
+			
+		EquipPlayerArmor(player);
 
-			if(randomPrimary || randomCompetitive)
-				EquipWeapon(primary,60,player);
-			else
-				EquipWeapon(playerEquipment[i+1],60,player);
+		if(randomPrimary || randomCompetitive)
+			Players[i].Primary = primary;	
+		
+		EquipWeapon(Players[i].Primary, 60, player);
 
-			if(randomSecondary)
-				EquipWeapon(secondary,60,player);
-			else
-				EquipWeapon(playerEquipment[i+2],60,player);
+		if(randomSecondary)
+			Players[i].Secondary = secondary;
 
-			if(randomKnife)
-			{
-				EquipWeapon(knife,60,player);
-				EntFire("weapon_knife", "addoutput", "classname weapon_knifegg");
-			}
-			else
-			{
-				EquipWeapon(playerEquipment[i+3],60,player);
-				EntFire("weapon_knife", "addoutput", "classname weapon_knifegg");
-			}
-		}
+		EquipWeapon(Players[i].Secondary, 60, player);
+
+		if(randomKnife)
+			Players[i].Knife = knife;
+
+		EquipWeapon(Players[i].Knife, 60, player);
+		EntFire("weapon_knife", "addoutput", "classname weapon_knifegg");
 	}
 }
 
 // Removes player weapon configuration and userid's incase there is a problem
 function Reset()
 {
-	playerEquipment = ["null", "weapon_ak47","weapon_deagle","weapon_knife_m9_bayonet",
-                      "null", "weapon_ak47","weapon_deagle","weapon_knife_m9_bayonet",
-                      "null", "weapon_ak47","weapon_deagle","weapon_knife_m9_bayonet",
-                      "null", "weapon_ak47","weapon_deagle","weapon_knife_m9_bayonet",];
-	
+	Players = [];	
 	ScriptPrintMessageChatAll(" \x07 ALL ID'S ARE RESET");
 }
 
