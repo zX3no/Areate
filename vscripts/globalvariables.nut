@@ -29,6 +29,13 @@
 "weapon_knife_widowmaker","weapon_knife_css","weapon_knife_skeleton","weapon_knifegg","weapon_knife_outdoor",
 "weapon_knife_cord","weapon_knife_canis"];
 
+function rndint(max) {
+    // Generate a pseudo-random integer between 0 and max - 1, inclusive
+	local roll = rand() % max;
+    //local roll = 1.0 * max * rand() / RAND_MAX;
+    return roll.tointeger();
+}
+
 /*
 ::rifleList <- ["weapon_ak47","weapon_m4a1","weapon_m4a1_silencer","weapon_aug","weapon_sg556",
 "weapon_galilar","weapon_famas","weapon_awp","weapon_ssg08","weapon_g3sg1","weapon_scar20"];

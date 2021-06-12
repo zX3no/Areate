@@ -1,4 +1,9 @@
 //This script allows players to change their weapons using chat commands
+/*
+
+Spawn -> Create Player -> Give Weapons
+
+*/
 
 /*
 Color Config
@@ -20,6 +25,28 @@ IncludeScript("vs_library")
 ::SMain <- this;
 ::mainScript <- 0;
 
+class CSPlayer
+{
+	PlayerID = null;
+	Primary = "weapon_ak47";
+	Secondary = "weapon_deagle";
+	Knife = "weapon_knife_m9_bayonet";
+
+	constructor(id) 
+	{
+		PlayerID = id;
+    }
+
+	function GetPlayerID()
+	{
+		return PlayerID.tostring();
+	}
+}
+
+//P.push(CSPlayer(id))
+//Players
+::P <- [];
+
 function OnPostSpawn() 
 {
 	mainScript = self.GetScriptScope();
@@ -38,9 +65,9 @@ function OnPostSpawn()
 	if(!enableBots)
 		SendToConsole("bot_kick")
 
-	foreach(ply in ::VS.GetAllPlayers())
+	foreach(player in ::VS.GetAllPlayers())
 	{
-		local s = _init_scope(ply);
+		local s = _init_scope(player);
 
 		if(!s.bot && s.networkid != "BOT")
 		{
@@ -54,33 +81,40 @@ function OnPostSpawn()
 					ScriptPrintMessageChatAll(" \x04 Assigning ID \x07"+s.userid+"\x04 to \x07"+s.name);
 
 					playerEquipment[i] = s.userid;
-					givePlayerWeapons(s.userid)
+					//This is only called when the player first joins or on reset()
+					givePlayerWeapons(player, s.userid)
 					break;
 				}
 			}
 		}
-		else giveBotWeapons(s.userid);
+		else giveBotWeapons(player);
 	}
-
+	giveServer();
+	/*
+	//this might be redundant
 	local ft = FrameTime();
 	foreach( i,v in ::VS.GetAllPlayers() )
 		::delay("::VS.Events.ForceValidateUserid(activator)", i*ft, ::ENT_SCRIPT, v);
+	*/
 
 }.bindenv(this);
 
-function giveBotWeapons(id)
+function giveBotWeapons(player)
 {
-	local player = VS.GetPlayerByUserid(id);
-			
 	EntFire("equip_strip", "Use", "", 0, player);
 		
 	equipPlayerArmor(player);
 
-	EquipWeapon("weapon_ak47",60,player)
+	if(randomPrimary)
+		EquipWeapon(primaryList[rndint(primaryList.len())], 60, player);
+	else
+		EquipWeapon(competitiveList[rndint(competitiveList.len())], 60, player);
 
-	EquipWeapon("weapon_deagle",60,player)
-	
-	EquipWeapon("weapon_knife",60,player)
+	EquipWeapon(pistolList[rndint(pistolList.len())], 60, player);
+
+	EquipWeapon(knifeList[rndint(knifeList.len())], 60, player);	
+	EntFire("weapon_knife", "addoutput", "classname weapon_knifegg");
+
 }
 
 //WTF does this do?
@@ -101,18 +135,19 @@ function giveBotWeapons(id)
 	return s;
 }
 
-::OnGameEvent_player_say <- function( data )
+::OnGameEvent_player_say <- function(data)
 {
-	local msg = data.text				// get the chat message
-	if(msg.slice(0,1) != "!") return	// if the message isn't a command, leave
+	local msg = data.text
+	if(msg.slice(0,1) != "!")
+		return
 	
-	local id = data.userid;
-	
-	local result = SMain.SayCommand(msg.slice(1), id);
+	local result = SMain.SayCommand(msg.slice(1), data.userid);
+
+	local player = VS.GetPlayerByUserid(data.userid);
 
 	//sometimes i don't want to update the players weapons
 	if(result != null && result != "false") 
-		SMain.givePlayerWeapons(id);
+		SMain.givePlayerWeapons(player, data.userid);
 }
 
 function settingState(option, state)
@@ -125,7 +160,7 @@ function settingState(option, state)
 	return !state;
 }
 
-function SayCommand( msg, id)
+function SayCommand(msg, id)
 {
 	local buffer = split(msg, " ")
 	local val, cmd = buffer[0]
@@ -232,7 +267,7 @@ function SayCommand( msg, id)
     }
 }
 
-function SetPrimary(val,i)
+function SetPrimary(val, i)
 {
 	if(val == null)
 	{
@@ -355,7 +390,7 @@ function SetPrimary(val,i)
 	}
 	return true;
 }
-function SetPistol(val,i)
+function SetPistol(val, i)
 {
 	if(val == null)
 	{
@@ -433,7 +468,7 @@ function SetPistol(val,i)
 	return true;
 }
 
-function SetKnife(val,i)
+function SetKnife(val, i)
 {
 	if(val == null)
 	{
@@ -541,28 +576,26 @@ function SetKnife(val,i)
 	return true;
 }
 
-function givePlayerWeapons(id)
+//Only called when the player types a weapon in chat
+function givePlayerWeapons(player, id)
 {
 	for(local i = 0; i < 13; i+=4)
     {
-        if(playerEquipment[i] != "null" && playerEquipment[i] == id)
+        if(playerEquipment[i] == id)
         {
-            local player = VS.GetPlayerByUserid(playerEquipment[i]);
-			
 			EntFire("equip_strip", "Use", "", 0, player);
 			
 			equipPlayerArmor(player);
 
 			//Primary
-            EquipWeapon(playerEquipment[i+1],60,player)
+            EquipWeapon(playerEquipment[i+1], 60, player)
 			
 			//Secondary
-            EquipWeapon(playerEquipment[i+2],60,player)
+            EquipWeapon(playerEquipment[i+2], 60, player)
 
 			//Knife
-            EquipWeapon(playerEquipment[i+3],60,player)
+            EquipWeapon(playerEquipment[i+3], 60, player)
             EntFire("weapon_knife", "addoutput", "classname weapon_knifegg")
-			
         }
     }
 }
@@ -583,10 +616,16 @@ function equipPlayerArmor(player)
 		EquipWeapon("weapon_bumpmine",60,player);
 	}
 }
+
+function giveServerWeapons()
+{
+
+}
 //TODO add random weapons to playerEquipment so that they can be kept after random is turned off
 //TODO i think this is causing problems
 //Called on player spawn - fired once - when more than one person spawns this would fire multiple times
-function giveServerWeapons()	
+//TODO RENAME THIS AND DELETE THING FROM MAP
+function giveServer()	
 {
 	if(randomPrimary)
 		::primary <- primaryList[rndint(primaryList.len())];
@@ -694,13 +733,6 @@ function RandomWeapons(val)
 	}
 }
 
-function rndint(max) {
-    // Generate a pseudo-random integer between 0 and max - 1, inclusive
-	local roll = rand() % max;
-    //local roll = 1.0 * max * rand() / RAND_MAX;
-    return roll.tointeger();
-}
-
 function EquipWeapon(weapon, ammo, player)
 {
     //Make required entities
@@ -761,59 +793,9 @@ function PrintHelp(val)
 	}
 }
 
-//This is not used because logic auto is better, good for reference though
-function ServerCommands()	
-{
-	//invunrabiltity
-	SendToConsole("mp_respawn_immunitytime 0")
-
-	//end warmup
-	SendToConsole("mp_warmup_end")
-	SendToConsole("mp_warmuptime 0")
-
-	//roundtime
-	SendToConsole("mp_roundtime 60")
-	SendToConsole("mp_roundtime_defuse 60")
-	SendToConsole("mp_roundtime_hostage 60")
-	SendToConsole("mp_timelimit 0")
-
-	//maxrounds
-	SendToConsole("mp_maxrounds 100")
-
-	//halftime
-	SendToConsole("mp_halftime 0")
-	SendToConsole("mp_halftime_duration 0")
-
-	//roundtimedelays
-	SendToConsole("mp_round_restart_delay 1")
-	SendToConsole("mp_freezetime 0")
-
-	//ffa
-	SendToConsole("mp_solid_teammates 1")
-	SendToConsole("mp_teammates_are_enemies 1")
-	SendToConsole("mp_autokick 0")
-	SendToConsole("mp_autoteambalance 0")
-	//nextmap
-	SendToConsole("mp_endmatch_votenextmap 0")
-	SendToConsole("mp_endmatch_votenextmap_keepcurrent 1")
-
-	//spectators
-	SendToConsole("mp_forcecamera 0")
-
-	//default weapons
-	SendToConsole("mp_ct_default_primary 0")
-	SendToConsole("mp_ct_default_secondary 0")
-	SendToConsole("mp_t_default_primary 0")
-	SendToConsole("mp_t_default_secondary 0")
-
-	//All talk
-	/*
-	sv_alltalk 1
-	sv_auto_full_alltalk_during_warmup_half_end 1 
-	sv_deadtalk 1 
-	sv_full_alltalk 1
-	sv_talk_after_dying_time 1 
-	sv_talk_enemy_dead 1 
-	sv_talk_enemy_living 1 
-	*/
+function rndint(max) {
+    // Generate a pseudo-random integer between 0 and max - 1, inclusive
+	local roll = rand() % max;
+    //local roll = 1.0 * max * rand() / RAND_MAX;
+    return roll.tointeger();
 }
