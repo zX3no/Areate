@@ -1,9 +1,4 @@
 //This script allows players to change their weapons using chat commands
-/*
-
-Spawn -> Create Player -> Give Weapons
-
-*/
 
 /*
 Color Config
@@ -22,7 +17,6 @@ Orange: \x09
 
 IncludeScript("vs_library")
 
-::SMain <- this;
 ::mainScript <- 0;
 
 class CSPlayer
@@ -48,16 +42,24 @@ function OnPostSpawn()
 	mainScript = self.GetScriptScope();
 }
 
-//TODO bots could have a class that inherits from players that way 
-//i don't need more funcitons and they can have the same behaviour 
+::OnGameEvent_player_say <- function(data)
+{
+	local msg = data.text
+	local player = VS.GetPlayerByUserid(data.userid);
 
+	if(msg.slice(0,1) != "!")
+		return
+
+	local result = ParseUserInput(msg.slice(1), data.userid)
+	
+	if(result != null && result != "false") 
+		GiveWeapons(false, player, data.userid);
+}.bindenv(this)
+//TODO FIGURE out if i could use player connect to assign ids instead
 ::OnGameEvent_round_start <- function(data)
 {
 	if(ScriptGetRoundsPlayed() == 0)
 		ScriptPrintMessageChatAll(" \x04 Type !help for command help!");
-
-	//TODO why is this here?
-	SendToConsole("mp_respawn_immunitytime 0")
 
 	if(!enableBots)
 		SendToConsole("bot_kick")
@@ -73,9 +75,10 @@ function OnPostSpawn()
 		else if(s.bot)
 			GiveBotWeapons(player);
 	}
-
 	GiveWeapons(true, null, null);
-	//reminder to re-add user id validation if it's broken
+	local ft = FrameTime();
+	foreach( i,v in ::VS.GetAllPlayers() )
+		::delay("::VS.Events.ForceValidateUserid(activator)", i*ft, ::ENT_SCRIPT, v);
 }.bindenv(this);
 
 function AssignUserID(id)
@@ -96,16 +99,16 @@ function GiveBotWeapons(player)
 {
 	EntFire("equip_strip", "Use", "", 0, player);
 		
-	EquipPlayerArmor(player);
+	GiveArmor(player);
 
 	if(randomPrimary)
-		EquipWeapon(primaryList[rndint(primaryList.len())], 60, player);
+		Give(primaryList[rndint(primaryList.len())], player);
 	else
-		EquipWeapon(competitiveList[rndint(competitiveList.len())], 60, player);
+		Give(competitiveList[rndint(competitiveList.len())], player);
 
-	EquipWeapon(secondaryList[rndint(secondaryList.len())], 60, player);
+	Give(secondaryList[rndint(secondaryList.len())], player);
 
-	EquipWeapon(knifeList[rndint(knifeList.len())], 60, player);	
+	Give(knifeList[rndint(knifeList.len())], player);	
 	EntFire("weapon_knife", "addoutput", "classname weapon_knifegg");
 }
 
@@ -128,22 +131,7 @@ function GiveBotWeapons(player)
 	return s;
 }
 
-::OnGameEvent_player_say <- function(data)
-{
-	local msg = data.text
-	local player = VS.GetPlayerByUserid(data.userid);
-
-	if(msg.slice(0,1) != "!")
-		return
-
-	local result = ParseUserInput(msg.slice(1), data.userid)
-	//sometimes i don't want to update the players weapons
-	if(result != null && result != "false") 
-		GiveWeapons(false, player, data.userid);
-
-}.bindenv(this)
-
-function settingState(option, state)
+function SettingState(option, state)
 {
 	if(state)
 		ScriptPrintMessageChatAll(" \x03" + option + " is: \x08Off");
@@ -193,12 +181,12 @@ function ParseUserInput(msg, id)
 				case "headshotonly":
 					if(headshotOnly)
 					{
-						headshotOnly = settingState("Headshot Only", headshotOnly);
+						headshotOnly = SettingState("Headshot Only", headshotOnly);
 						SendToConsole("mp_damage_headshot_only 0");
 					}
 					else
 					{
-						headshotOnly = settingState("Headshot Only", headshotOnly);
+						headshotOnly = SettingState("Headshot Only", headshotOnly);
 						SendToConsole("mp_damage_headshot_only 1");
 					}
 					return "false";
@@ -209,9 +197,9 @@ function ParseUserInput(msg, id)
 				case "kev":
 				case "kevlar":
 					if(equipArmor)
-						equipArmor = settingState("Armor", equipArmor);
+						equipArmor = SettingState("Armor", equipArmor);
 					else
-						equipArmor = settingState("Armor", equipArmor);
+						equipArmor = SettingState("Armor", equipArmor);
 					return "false";
 				case "h":	
 				case "help":
@@ -220,9 +208,9 @@ function ParseUserInput(msg, id)
 				case "helm":
 				case "helmet":
 					if(equipHelmet)
-						equipHelmet = settingState("Helmet", equipHelmet);
+						equipHelmet = SettingState("Helmet", equipHelmet);
 					else
-						equipHelmet = settingState("Helmet", equipHelmet);
+						equipHelmet = SettingState("Helmet", equipHelmet);
 					return "false";
 				case "b":
 				case "bump":
@@ -230,12 +218,12 @@ function ParseUserInput(msg, id)
 					if(giveBumpMines)
 					{
 						SendToConsole("sv_falldamage_scale 1");
-						giveBumpMines = settingState("Bump Mines", giveBumpMines);
+						giveBumpMines = SettingState("Bump Mines", giveBumpMines);
 					}
 					else
 					{
 						SendToConsole("sv_falldamage_scale 0");
-						giveBumpMines = settingState("Bump Mines", giveBumpMines);
+						giveBumpMines = SettingState("Bump Mines", giveBumpMines);
 					}
 					return "false";
 				case "reset":
@@ -247,12 +235,12 @@ function ParseUserInput(msg, id)
 					{
 						SendToConsole("bot_kick");
 						SendToConsole("mp_restartgame 1");
-						enableBots = settingState("Bots", enableBots);
+						enableBots = SettingState("Bots", enableBots);
 					}
 					else
 					{
 						SendToConsole("bot_quota 4");
-						enableBots = settingState("Bots", enableBots);
+						enableBots = SettingState("Bots", enableBots);
 					}
 					return "false";
 				case "random":
@@ -267,78 +255,67 @@ function ParseUserInput(msg, id)
     }
 }
 
-//TODO maybe rename to equipEquipment
-function EquipPlayerArmor(player)
-{
-	EntFire("equip_strip", "Use", "", 0, player);
-
-	if(equipArmor && equipHelmet)
-		EquipWeapon("item_assaultsuit",60,player);
-	else if(equipArmor)
-		EquipWeapon("item_kevlar",60,player)
-
-	//idk why this is here?
-	if(giveBumpMines)
-	{
-		// Drop lots of them on the floor 
-		EquipWeapon("weapon_bumpmine",60,player);
-		EquipWeapon("weapon_bumpmine",60,player);
-	}
-}
-
-function giveServerWeapons()
-//TODO RENAME THIS AND DELETE THING FROM MAP
 function GiveWeapons(server, p, id)	
 {
-	if(server)
-	{
-		if(randomPrimary)
-			::primary <- primaryList[rndint(primaryList.len())];
-		else if(randomCompetitive)
-			::primary <- competitiveList[rndint(competitiveList.len())];
-
-		if(randomSecondary)
-			::secondary <- secondaryList[rndint(secondaryList.len())];
-
-		if(randomKnife)
-			::knife <- knifeList[rndint(knifeList.len())];
-	}
 	for(local i = 0; i < Players.len(); i++)
 	{
 		if(server)
 		{
 			local player = VS.GetPlayerByUserid(Players[i].ID);
 			
-			if(randomPrimary || randomCompetitive)
-				Players[i].Primary = primary;	
+			if(randomPrimary)
+				Players[i].Primary = primaryList[rndint(primaryList.len())];
+			else if(randomCompetitive)
+				Players[i].Primary = competitiveList[rndint(competitiveList.len())]; 
 		
 			if(randomSecondary)
-				Players[i].Secondary = secondary;
+				Players[i].Secondary = secondaryList[rndint(secondaryList.len())];
 
 			if(randomKnife)
-				Players[i].Knife = knife;
+				Players[i].Knife = knifeList[rndint(knifeList.len())];
 
-			GiveEquipment(player, i);
+			GiveItems(player, i);
 
 		}
 		else if(Players[i].ID == id)
 		{
-			GiveEquipment(p, i);
+			GiveItems(p, i);
 		}
 	}
 }
 
-function GiveEquipment(player, i)
+function GiveItems(player, i)
 {
-	EquipPlayerArmor(player);
-	EquipWeapon(Players[i].Primary, 60, player)
-	EquipWeapon(Players[i].Secondary, 60, player)
-	EquipWeapon(Players[i].Knife, 60, player)
+	GiveArmor(player);
+	Give(Players[i].Primary, player)
+	Give(Players[i].Secondary, player)
+	Give(Players[i].Knife, player)
 	EntFire("weapon_knife", "addoutput", "classname weapon_knifegg");
 }
 
+function GiveArmor(player)
+{
+	EntFire("equip_strip", "Use", "", 0, player);
 
-// Logic for enable random primaries, secondaries and knives
+	if(equipArmor && equipHelmet)
+		Give("item_assaultsuit", player);
+	else if(equipArmor)
+		Give("item_kevlar", player)
+
+	if(giveBumpMines)
+		Give("weapon_bumpmine", player);
+}
+
+function Give(weapon, player)
+{
+    local equip = Entities.CreateByClassname("game_player_equip")
+    equip.__KeyValueFromInt(weapon, 60)
+
+    EntFireByHandle(equip, "use", "", 0, player, player)
+    
+    equip.Destroy()
+}
+
 function RandomWeapons(val)
 {
 	switch(val)
@@ -346,59 +323,46 @@ function RandomWeapons(val)
 		case "p":
 		case "primary":
 			if(randomPrimary)
-				randomPrimary = settingState("Random Primary", randomPrimary);
+				randomPrimary = SettingState("Random Primary", randomPrimary);
 			else
 			{
 				randomCompetitive = false;
-				randomPrimary = settingState("Random Primary", randomPrimary);
+				randomPrimary = SettingState("Random Primary", randomPrimary);
 			}
 			break;
 		case "s":
 		case "secondary":
 		case "sec":
 			if(randomSecondary)
-				randomSecondary = settingState("Random Secondary", randomSecondary);
+				randomSecondary = SettingState("Random Secondary", randomSecondary);
 			else
-				randomSecondary = settingState("Random Secondary", randomSecondary);
+				randomSecondary = SettingState("Random Secondary", randomSecondary);
 			break;
 		case "k":
 		case "knife":
 			if(randomKnife)
-				randomKnife = settingState("Random Knife", randomKnife);
+				randomKnife = SettingState("Random Knife", randomKnife);
 			else
-				randomKnife = settingState("Random Knife", randomKnife);
+				randomKnife = SettingState("Random Knife", randomKnife);
 			break;
 		case "c":
 		case "comp":
 		case "competitive":
 			if(randomCompetitive)
-				randomCompetitive = settingState("Random Competitive", randomCompetitive);
+				randomCompetitive = SettingState("Random Competitive", randomCompetitive);
 			else
 			{
 				randomPrimary = false;
-				randomCompetitive = settingState("Random Competitive", randomCompetitive);
+				randomCompetitive = SettingState("Random Competitive", randomCompetitive);
 			}
 			break;
 		default:
-			settingState("Random Primaries", !randomPrimary);
-			settingState("Random Secondaries", !randomSecondary);
-			settingState("Random Knives", !randomKnife);
-			settingState("Random Competitive", !randomCompetitive);
+			SettingState("Random Primaries", !randomPrimary);
+			SettingState("Random Secondaries", !randomSecondary);
+			SettingState("Random Knives", !randomKnife);
+			SettingState("Random Competitive", !randomCompetitive);
 			break;
 	}
-}
-
-function EquipWeapon(weapon, ammo, player)
-{
-    //Make required entities
-    local equip = Entities.CreateByClassname("game_player_equip")
-    equip.__KeyValueFromInt(weapon, ammo)
-
-    //Give weapon to the player
-    EntFireByHandle(equip, "use", "", 0, player, player)
-    
-    //Destroy the entity so we don't end up with a bunch of them
-    equip.Destroy()
 }
 
 function PrintHelp(val)
@@ -749,13 +713,10 @@ function SetKnife(val, i)
 }
 
 function rndint(max) {
-    // Generate a pseudo-random integer between 0 and max - 1, inclusive
 	local roll = rand() % max;
-    //local roll = 1.0 * max * rand() / RAND_MAX;
     return roll.tointeger();
 }
 
-// Removes player weapon configuration and userid's incase there is a problem
 function Reset()
 {
 	Players = [];	
