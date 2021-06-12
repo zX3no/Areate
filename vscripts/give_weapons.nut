@@ -74,7 +74,7 @@ function OnPostSpawn()
 			GiveBotWeapons(player);
 	}
 
-	GiveServer();
+	GiveWeapons(true, null, null);
 	//reminder to re-add user id validation if it's broken
 }.bindenv(this);
 
@@ -94,7 +94,6 @@ function AssignUserID(id)
 
 function GiveBotWeapons(player)
 {
-	ScriptPrintMessageChatAll("giving bot weapons")
 	EntFire("equip_strip", "Use", "", 0, player);
 		
 	EquipPlayerArmor(player);
@@ -110,21 +109,6 @@ function GiveBotWeapons(player)
 	EntFire("weapon_knife", "addoutput", "classname weapon_knifegg");
 }
 
-//Only called when the player types a weapon in chat
-function GivePlayerWeapons(player, id)
-{
-	for(local i = 0; i < Players.len(); i++)
-    {
-        if(Players[i].ID == id)
-        {
-			EquipPlayerArmor(player);
-            EquipWeapon(Players[i].Primary, 60, player)
-            EquipWeapon(Players[i].Secondary, 60, player)
-            EquipWeapon(Players[i].Knife, 60, player)
-            EntFire("weapon_knife", "addoutput", "classname weapon_knifegg")
-        }
-    }
-}
 
 //WTF does this do?
 ::_init_scope <- function(s)
@@ -152,10 +136,10 @@ function GivePlayerWeapons(player, id)
 	if(msg.slice(0,1) != "!")
 		return
 
-	ParseUserInput(msg.slice(1), data.userid)
+	local result = ParseUserInput(msg.slice(1), data.userid)
 	//sometimes i don't want to update the players weapons
 	if(result != null && result != "false") 
-		GivePlayerWeapons(player, data.userid);
+		GiveWeapons(false, player, data.userid);
 
 }.bindenv(this)
 
@@ -207,7 +191,16 @@ function ParseUserInput(msg, id)
 				case "hs":
 				case "headshot":
 				case "headshotonly":
-					HeadshotOnly();
+					if(headshotOnly)
+					{
+						headshotOnly = settingState("Headshot Only", headshotOnly);
+						SendToConsole("mp_damage_headshot_only 0");
+					}
+					else
+					{
+						headshotOnly = settingState("Headshot Only", headshotOnly);
+						SendToConsole("mp_damage_headshot_only 1");
+					}
 					return "false";
 				case "a":
 				case "arm":
@@ -272,6 +265,173 @@ function ParseUserInput(msg, id)
 			}
         }
     }
+}
+
+//TODO maybe rename to equipEquipment
+function EquipPlayerArmor(player)
+{
+	EntFire("equip_strip", "Use", "", 0, player);
+
+	if(equipArmor && equipHelmet)
+		EquipWeapon("item_assaultsuit",60,player);
+	else if(equipArmor)
+		EquipWeapon("item_kevlar",60,player)
+
+	//idk why this is here?
+	if(giveBumpMines)
+	{
+		// Drop lots of them on the floor 
+		EquipWeapon("weapon_bumpmine",60,player);
+		EquipWeapon("weapon_bumpmine",60,player);
+	}
+}
+
+function giveServerWeapons()
+//TODO RENAME THIS AND DELETE THING FROM MAP
+function GiveWeapons(server, p, id)	
+{
+	if(server)
+	{
+		if(randomPrimary)
+			::primary <- primaryList[rndint(primaryList.len())];
+		else if(randomCompetitive)
+			::primary <- competitiveList[rndint(competitiveList.len())];
+
+		if(randomSecondary)
+			::secondary <- secondaryList[rndint(secondaryList.len())];
+
+		if(randomKnife)
+			::knife <- knifeList[rndint(knifeList.len())];
+	}
+	for(local i = 0; i < Players.len(); i++)
+	{
+		if(server)
+		{
+			local player = VS.GetPlayerByUserid(Players[i].ID);
+			
+			if(randomPrimary || randomCompetitive)
+				Players[i].Primary = primary;	
+		
+			if(randomSecondary)
+				Players[i].Secondary = secondary;
+
+			if(randomKnife)
+				Players[i].Knife = knife;
+
+			GiveEquipment(player, i);
+
+		}
+		else if(Players[i].ID == id)
+		{
+			GiveEquipment(p, i);
+		}
+	}
+}
+
+function GiveEquipment(player, i)
+{
+	EquipPlayerArmor(player);
+	EquipWeapon(Players[i].Primary, 60, player)
+	EquipWeapon(Players[i].Secondary, 60, player)
+	EquipWeapon(Players[i].Knife, 60, player)
+	EntFire("weapon_knife", "addoutput", "classname weapon_knifegg");
+}
+
+
+// Logic for enable random primaries, secondaries and knives
+function RandomWeapons(val)
+{
+	switch(val)
+	{
+		case "p":
+		case "primary":
+			if(randomPrimary)
+				randomPrimary = settingState("Random Primary", randomPrimary);
+			else
+			{
+				randomCompetitive = false;
+				randomPrimary = settingState("Random Primary", randomPrimary);
+			}
+			break;
+		case "s":
+		case "secondary":
+		case "sec":
+			if(randomSecondary)
+				randomSecondary = settingState("Random Secondary", randomSecondary);
+			else
+				randomSecondary = settingState("Random Secondary", randomSecondary);
+			break;
+		case "k":
+		case "knife":
+			if(randomKnife)
+				randomKnife = settingState("Random Knife", randomKnife);
+			else
+				randomKnife = settingState("Random Knife", randomKnife);
+			break;
+		case "c":
+		case "comp":
+		case "competitive":
+			if(randomCompetitive)
+				randomCompetitive = settingState("Random Competitive", randomCompetitive);
+			else
+			{
+				randomPrimary = false;
+				randomCompetitive = settingState("Random Competitive", randomCompetitive);
+			}
+			break;
+		default:
+			settingState("Random Primaries", !randomPrimary);
+			settingState("Random Secondaries", !randomSecondary);
+			settingState("Random Knives", !randomKnife);
+			settingState("Random Competitive", !randomCompetitive);
+			break;
+	}
+}
+
+function EquipWeapon(weapon, ammo, player)
+{
+    //Make required entities
+    local equip = Entities.CreateByClassname("game_player_equip")
+    equip.__KeyValueFromInt(weapon, ammo)
+
+    //Give weapon to the player
+    EntFireByHandle(equip, "use", "", 0, player, player)
+    
+    //Destroy the entity so we don't end up with a bunch of them
+    equip.Destroy()
+}
+
+function PrintHelp(val)
+{
+	switch(val)
+	{
+		case "3":
+			ScriptPrintMessageChatAll(" \x04 Page 3/3");
+			ScriptPrintMessageChatAll(" \x04 --------------------------------------------------------------------------------------");
+			ScriptPrintMessageChatAll(" \x04 !bot |\x05 toggle bots");
+			ScriptPrintMessageChatAll(" \x04 !reset: \x05 Players are assigned id's on connect, however sometimes these can be broken from players reconnecting or bot's taking id's for themeselves. \x03 ¯\\_\x28ツ\x29_/¯");
+			ScriptPrintMessageChatAll(" \x07 Use !reset to fix this!"); 
+			break;
+		case "2":
+			ScriptPrintMessageChatAll(" \x04 Page 2/3");
+			ScriptPrintMessageChatAll(" \x04 --------------------------------------------------------------------------------------");
+			ScriptPrintMessageChatAll(" \x04 !random \x05 toggles random weapons eg. !random knife");
+			ScriptPrintMessageChatAll(" \x05 - options: primary \x04|\x05  secondary \x04|\x05 knife \x04|\x05 competitive")
+			ScriptPrintMessageChatAll(" \x04 !armor \x05 toggles armor");
+			ScriptPrintMessageChatAll(" \x04 !bumpmines\x05 toggles bump mines");
+			ScriptPrintMessageChatAll(" \x04 !helmet \x05 toggles helmets");
+			ScriptPrintMessageChatAll(" \x04 !hs \x05 toggles headshot only");
+			break;
+		case "1":
+		default:
+			ScriptPrintMessageChatAll(" \x04 Page 1/3");
+			ScriptPrintMessageChatAll(" \x04 --------------------------------------------------------------------------------------");
+			ScriptPrintMessageChatAll(" \x04 Write the command without arguments to list weapons \x05 eg. !gun");
+			ScriptPrintMessageChatAll(" \x04 !gun Name ‎‎\x05 eg. !gun ak");
+			ScriptPrintMessageChatAll(" \x04 !pistol Name \x05 eg. !pistol deagle");
+			ScriptPrintMessageChatAll(" \x04 !knife Name \x05 eg. !knife butterfly");
+			break;
+	}
 }
 
 function SetPrimary(val, i)
@@ -398,6 +558,7 @@ function SetPrimary(val, i)
 	ScriptPrintMessageChatAll(" \x04 Primary: \x05"+ Players[i].Primary);
 	return true;
 }
+
 function SetSecondary(val, i)
 {
 	if(val == null)
@@ -587,62 +748,11 @@ function SetKnife(val, i)
 	return true;
 }
 
-//TODO maybe rename to equipEquipment
-function EquipPlayerArmor(player)
-{
-	EntFire("equip_strip", "Use", "", 0, player);
-
-	if(equipArmor && equipHelmet)
-		EquipWeapon("item_assaultsuit",60,player);
-	else if(equipArmor)
-		EquipWeapon("item_kevlar",60,player)
-
-	//idk why this is here?
-	if(giveBumpMines)
-	{
-		// Drop lots of them on the floor 
-		EquipWeapon("weapon_bumpmine",60,player);
-		EquipWeapon("weapon_bumpmine",60,player);
-	}
-}
-
-function giveServerWeapons()
-//TODO RENAME THIS AND DELETE THING FROM MAP
-function GiveServer()	
-{
-	if(randomPrimary)
-		::primary <- primaryList[rndint(primaryList.len())];
-	else if(randomCompetitive)
-		::primary <- competitiveList[rndint(competitiveList.len())];
-
-	if(randomSecondary)
-		::secondary <- secondaryList[rndint(secondaryList.len())];
-
-	if(randomKnife)
-		::knife <- knifeList[rndint(knifeList.len())];
-
-	for(local i = 0; i < Players.len(); i++)
-	{
-		local player = VS.GetPlayerByUserid(Players[i].ID);
-			
-		EquipPlayerArmor(player);
-
-		if(randomPrimary || randomCompetitive)
-			Players[i].Primary = primary;	
-		
-		EquipWeapon(Players[i].Primary, 60, player);
-
-		if(randomSecondary)
-			Players[i].Secondary = secondary;
-
-		EquipWeapon(Players[i].Secondary, 60, player);
-
-		if(randomKnife)
-			Players[i].Knife = knife;
-
-		EquipWeapon(Players[i].Knife, 60, player);
-		EntFire("weapon_knife", "addoutput", "classname weapon_knifegg");
-	}
+function rndint(max) {
+    // Generate a pseudo-random integer between 0 and max - 1, inclusive
+	local roll = rand() % max;
+    //local roll = 1.0 * max * rand() / RAND_MAX;
+    return roll.tointeger();
 }
 
 // Removes player weapon configuration and userid's incase there is a problem
@@ -650,121 +760,4 @@ function Reset()
 {
 	Players = [];	
 	ScriptPrintMessageChatAll(" \x07 ALL ID'S ARE RESET");
-}
-
-// Logic for enable random primaries, secondaries and knives
-function RandomWeapons(val)
-{
-	switch(val)
-	{
-		case "p":
-		case "primary":
-			if(randomPrimary)
-				randomPrimary = settingState("Random Primary", randomPrimary);
-			else
-			{
-				randomCompetitive = false;
-				randomPrimary = settingState("Random Primary", randomPrimary);
-			}
-			break;
-		case "s":
-		case "secondary":
-		case "sec":
-			if(randomSecondary)
-				randomSecondary = settingState("Random Secondary", randomSecondary);
-			else
-				randomSecondary = settingState("Random Secondary", randomSecondary);
-			break;
-		case "k":
-		case "knife":
-			if(randomKnife)
-				randomKnife = settingState("Random Knife", randomKnife);
-			else
-				randomKnife = settingState("Random Knife", randomKnife);
-			break;
-		case "c":
-		case "comp":
-		case "competitive":
-			if(randomCompetitive)
-				randomCompetitive = settingState("Random Competitive", randomCompetitive);
-			else
-			{
-				randomPrimary = false;
-				randomCompetitive = settingState("Random Competitive", randomCompetitive);
-			}
-			break;
-		default:
-			settingState("Random Primaries", !randomPrimary);
-			settingState("Random Secondaries", !randomSecondary);
-			settingState("Random Knives", !randomKnife);
-			settingState("Random Competitive", !randomCompetitive);
-			break;
-	}
-}
-
-function EquipWeapon(weapon, ammo, player)
-{
-    //Make required entities
-    local equip = Entities.CreateByClassname("game_player_equip")
-    equip.__KeyValueFromInt(weapon, ammo)
-
-    //Give weapon to the player
-    EntFireByHandle(equip, "use", "", 0, player, player)
-    
-    //Destroy the entity so we don't end up with a bunch of them
-    equip.Destroy()
-}
-
-function HeadshotOnly()
-{
-	if(headshotOnly)
-	{
-		headshotOnly = settingState("Headshot Only", headshotOnly);
-		SendToConsole("mp_damage_headshot_only 0");
-	}
-	else
-	{
-		headshotOnly = settingState("Headshot Only", headshotOnly);
-		SendToConsole("mp_damage_headshot_only 1");
-	}
-}
-
-function PrintHelp(val)
-{
-	switch(val)
-	{
-		case "3":
-			ScriptPrintMessageChatAll(" \x04 Page 3/3");
-			ScriptPrintMessageChatAll(" \x04 --------------------------------------------------------------------------------------");
-			ScriptPrintMessageChatAll(" \x04 !bot |\x05 toggle bots");
-			ScriptPrintMessageChatAll(" \x04 !reset: \x05 Players are assigned id's on connect, however sometimes these can be broken from players reconnecting or bot's taking id's for themeselves. \x03 ¯\\_\x28ツ\x29_/¯");
-			ScriptPrintMessageChatAll(" \x07 Use !reset to fix this!"); 
-			break;
-		case "2":
-			ScriptPrintMessageChatAll(" \x04 Page 2/3");
-			ScriptPrintMessageChatAll(" \x04 --------------------------------------------------------------------------------------");
-			ScriptPrintMessageChatAll(" \x04 !random \x05 toggles random weapons eg. !random knife");
-			ScriptPrintMessageChatAll(" \x05 - options: primary \x04|\x05  secondary \x04|\x05 knife \x04|\x05 competitive")
-			ScriptPrintMessageChatAll(" \x04 !armor \x05 toggles armor");
-			ScriptPrintMessageChatAll(" \x04 !bumpmines\x05 toggles bump mines");
-			ScriptPrintMessageChatAll(" \x04 !helmet \x05 toggles helmets");
-			ScriptPrintMessageChatAll(" \x04 !hs \x05 toggles headshot only");
-			break;
-		case "1":
-		default:
-			ScriptPrintMessageChatAll(" \x04 Page 1/3");
-			ScriptPrintMessageChatAll(" \x04 --------------------------------------------------------------------------------------");
-			ScriptPrintMessageChatAll(" \x04 Write the command without arguments to list weapons \x05 eg. !gun");
-			ScriptPrintMessageChatAll(" \x04 !gun Name ‎‎\x05 eg. !gun ak");
-			ScriptPrintMessageChatAll(" \x04 !pistol Name \x05 eg. !pistol deagle");
-			ScriptPrintMessageChatAll(" \x04 !knife Name \x05 eg. !knife butterfly");
-			break;
-	}
-}
-
-function rndint(max) {
-    // Generate a pseudo-random integer between 0 and max - 1, inclusive
-	local roll = rand() % max;
-    //local roll = 1.0 * max * rand() / RAND_MAX;
-    return roll.tointeger();
 }
