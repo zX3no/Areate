@@ -83,14 +83,21 @@ function giveBotWeapons(id)
 	EquipWeapon("weapon_knife",60,player)
 }
 
+//WTF does this do?
 ::_init_scope <- function(s)
 {
 	s.ValidateScriptScope();
 	s = s.GetScriptScope();
-	if( !("userid" in s) ) s.userid <- "";
-	if( !("networkid" in s) ) s.networkid <- "";
-	if( !("name" in s) ) s.name <- "";
-	if( !("bot" in s) ) s.bot <- s.networkid == "BOT";
+
+	if(!("userid" in s)) 
+		s.userid <- "";
+	if(!("networkid" in s)) 
+		s.networkid <- "";
+	if(!("name" in s)) 
+		s.name <- "";
+	if(!("bot" in s)) 
+		s.bot <- s.networkid == "BOT";
+
 	return s;
 }
 
@@ -106,13 +113,6 @@ function giveBotWeapons(id)
 	//sometimes i don't want to update the players weapons
 	if(result != null && result != "false") 
 		SMain.givePlayerWeapons(id);
-}
-
-//TODO toggle the bool on/off with out parameter would be dank
-function trueIsOn(bool)
-{
-	if(bool) return "\x05 On";
-	else return "\x08 Off";
 }
 
 function settingState(option, state)
@@ -589,22 +589,15 @@ function equipPlayerArmor(player)
 function giveServerWeapons()	
 {
 	if(randomPrimary)
-	{
 		::primary <- primaryList[rndint(primaryList.len())];
-	}
 	else if(randomCompetitive)
-	{
 		::primary <- competitiveList[rndint(competitiveList.len())];
-	}
 
 	if(randomSecondary)
-	{
 		::secondary <- pistolList[rndint(pistolList.len())];
-	}
+
 	if(randomKnife)
-	{
 		::knife <- knifeList[rndint(knifeList.len())];
-	}
 
 	for(local i = 0; i < 13; i+=4)
 	{
@@ -617,21 +610,15 @@ function giveServerWeapons()
 			equipPlayerArmor(player);
 
 			if(randomPrimary || randomCompetitive)
-			{
 				EquipWeapon(primary,60,player);
-			}
 			else
-			{
 				EquipWeapon(playerEquipment[i+1],60,player);
-			}
+
 			if(randomSecondary)
-			{
 				EquipWeapon(secondary,60,player);
-			}
 			else
-			{
 				EquipWeapon(playerEquipment[i+2],60,player);
-			}
+
 			if(randomKnife)
 			{
 				EquipWeapon(knife,60,player);
@@ -664,67 +651,45 @@ function RandomWeapons(val)
 	{
 		case "p":
 		case "primary":
-			if(!randomPrimary)
-			{
-				ScriptPrintMessageChatAll(" \x03 Random Primary: \x05 On");
-				randomPrimary = true;
-
-				//both use the primary slot one needs to be off
-				randomCompetitive = false;
-			}
+			if(randomPrimary)
+				randomPrimary = settingState("Random Primary", randomPrimary);
 			else
-			{ 
-				ScriptPrintMessageChatAll(" \x03 Random Primary: \x08 Off");
-				randomPrimary = false;
+			{
+				randomCompetitive = false;
+				randomPrimary = settingState("Random Primary", randomPrimary);
 			}
 			break;
 		case "s":
 		case "secondary":
 		case "sec":
-			if(!randomSecondary)
-			{
-				ScriptPrintMessageChatAll(" \x03 Random Secondary: \x05 On");
-				randomSecondary = true;
-			}
+			if(randomSecondary)
+				randomSecondary = settingState("Random Secondary", randomSecondary);
 			else
-			{
-				ScriptPrintMessageChatAll(" \x03 Random Secondary: \x08 Off");
-				randomSecondary = false;
-			}
+				randomSecondary = settingState("Random Secondary", randomSecondary);
 			break;
 		case "k":
 		case "knife":
-			if(!randomKnife)
-			{
-				ScriptPrintMessageChatAll(" \x03 Random Knife: \x05 On");
-				randomKnife = true;
-			}
+			if(randomKnife)
+				randomKnife = settingState("Random Knife", randomKnife);
 			else
-			{
-				ScriptPrintMessageChatAll(" \x03 Random Knife: \x08 Off");
-				randomKnife = false;
-			}
+				randomKnife = settingState("Random Knife", randomKnife);
 			break;
 		case "c":
 		case "comp":
 		case "competitive":
-			if(!randomCompetitive)
-			{
-				ScriptPrintMessageChatAll(" \x03 Random Competitive: \x05 On");
-				randomCompetitive = true;
-				randomPrimary = false;
-			}
+			if(randomCompetitive)
+				randomCompetitive = settingState("Random Competitive", randomCompetitive);
 			else
 			{
-				ScriptPrintMessageChatAll(" \x03 Random Competitive: \x08 Off");
-				randomCompetitive = false;
+				randomPrimary = false;
+				randomCompetitive = settingState("Random Competitive", randomCompetitive);
 			}
 			break;
 		default:
-			ScriptPrintMessageChatAll(" \x03 Random primaries is: "+trueIsOn(randomPrimary));
-			ScriptPrintMessageChatAll(" \x03 Random secondaries is: "+trueIsOn(randomSecondary));
-			ScriptPrintMessageChatAll(" \x03 Random knives is: "+trueIsOn(randomKnife));
-			ScriptPrintMessageChatAll(" \x03 Random competitive is: "+trueIsOn(randomCompetitive));
+			settingState("Random Primaries", !randomPrimary);
+			settingState("Random Secondaries", !randomSecondary);
+			settingState("Random Knives", !randomKnife);
+			settingState("Random Competitive", !randomCompetitive);
 			break;
 	}
 }
@@ -753,15 +718,13 @@ function HeadshotOnly()
 {
 	if(headshotOnly)
 	{
-		headshotOnly = false;
+		headshotOnly = settingState("Headshot Only", headshotOnly);
 		SendToConsole("mp_damage_headshot_only 0");
-		ScriptPrintMessageChatAll(" \x03 Headshot Only: \x08 Off");
 	}
 	else
 	{
-		headshotOnly = true;
+		headshotOnly = settingState("Headshot Only", headshotOnly);
 		SendToConsole("mp_damage_headshot_only 1");
-		ScriptPrintMessageChatAll(" \x03 Headshot Only: \x05 On")
 	}
 }
 
