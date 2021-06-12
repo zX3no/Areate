@@ -115,16 +115,26 @@ function trueIsOn(bool)
 	else return "\x08 Off";
 }
 
+function settingState(option, state)
+{
+	if(state)
+		ScriptPrintMessageChatAll(" \x03" + option + " is: \x08Off");
+	else
+		ScriptPrintMessageChatAll(" \x03" + option + " is: \x05On");
+
+	return !state;
+}
+
 function SayCommand( msg, id)
 {
 	local buffer = split(msg, " ")
 	local val, cmd = buffer[0]
 
 	if(buffer.len() > 1)
-    {
         val = buffer[1];
-    }
-    
+	
+    //TODO move some of this shit into other functions 
+	//For every player?
     for(local i = 0; i < 13; i+=4)
     {
         if(id == playerEquipment[i])
@@ -133,118 +143,91 @@ function SayCommand( msg, id)
             {
                 case "g":
                 case "gun":
-			if(SetPrimary(val,i))
-			{
-				ScriptPrintMessageChatAll(" \x04 Primary: \x05"+ playerEquipment[i+1]);
+					if(SetPrimary(val,i))
+						ScriptPrintMessageChatAll(" \x04 Primary: \x05"+ playerEquipment[i+1]);
+					else 
+						return "false";
+					return "true";
+				case "p":
+				case "pistol":
+					if(SetPistol(val,i))
+						ScriptPrintMessageChatAll(" \x04 Pistol: \x05"+ playerEquipment[i+2]);
+					else 
+						return "false";
+					return "true";
+				case "k":
+				case "knife":
+					if(SetKnife(val,i))
+						ScriptPrintMessageChatAll(" \x04 Knife: \x05"+ playerEquipment[i+3]);
+					else 
+						return "false";
 				return "true";
-			}
-			else 
-				return "false";
-                case "p":
-                case "pistol":
-			if(SetPistol(val,i))
-			{
-				ScriptPrintMessageChatAll(" \x04 Pistol: \x05"+ playerEquipment[i+2]);
-				return "true";
-			}
-			else 
-				return "false";
-                    break;
-                case "k":
-                case "knife":
-			if(SetKnife(val,i))
-			{
-				ScriptPrintMessageChatAll(" \x04 Knife: \x05"+ playerEquipment[i+3]);
-				return "true";
-			}
-			else 
-				return "false";
-		case "hs":
-		case "headshot":
-		case "headshotonly":
-			HeadshotOnly();
-			return "false";
-		case "arm":
-			ScriptPrintMessageChatAll(" \x07 Arm attached");
-			return "false";
-		case "a":
-		case "armor":
-		case "armour":
-		case "kev":
-		case "kevlar":
-			if(equipArmor)
-			{
-				ScriptPrintMessageChatAll(" \x03 Armor is: \x08 Off");
-				equipArmor = false;
-			}
-			else
-			{
-				ScriptPrintMessageChatAll(" \x03 Armor is: \x05 On");
-				equipArmor = true;
-			}
-			return "false";
-		case "h":	
-		case "help":
-			PrintHelp(val);
-			return "false";
-		case "helm":
-		case "helmet":
-			if(equipHelmet)
-			{
-				ScriptPrintMessageChatAll("Helmet is: Off");
-				equipHelmet = false;
-			}
-			else
-			{
-				ScriptPrintMessageChatAll("Helmet is: On");
-				equipHelmet = true;
-			}
-			return "false";
-			break;
-		case "b":
-		case "bump":
-		case "bumpmines":
-			if(giveBumpMines)
-			{
-				SendToConsole("sv_falldamage_scale 1");
-				ScriptPrintMessageChatAll(" \x03 Bump Mines: \x08Off");
-				giveBumpMines = false;
-			}
-			else
-			{
-				SendToConsole("sv_falldamage_scale 0");
-				ScriptPrintMessageChatAll(" \x03 Bump Mines: \x05On");
-				giveBumpMines = true;
-			}
-			return "false";
-			break;
-		case "reset":
-			Reset();
-			return "false";
-		case "bot":
-		case "bots":
-			if(enableBots)
-			{
-				SendToConsole("bot_kick");
-				ScriptPrintMessageChatAll(" \x03 Bots: \x05 Off");
-				enableBots = false;
-			}
-			else
-			{
-				SendToConsole("bot_quota 4");
-				ScriptPrintMessageChatAll(" \x03 Bots: \x08 On");
-				enableBots = true;
-			}
-			break;
-			return "false";
-		case "random":
-		case "r":
-			RandomWeapons(val);
-			return "false";
-                default:
-                    ScriptPrintMessageChatAll(" \x07 Invalid command.");
+				case "hs":
+				case "headshot":
+				case "headshotonly":
+					HeadshotOnly();
 					return "false";
-            }
+				case "a":
+				case "arm":
+				case "armor":
+				case "armour":
+				case "kev":
+				case "kevlar":
+					if(equipArmor)
+						equipArmor = settingState("Armor", equipArmor);
+					else
+						equipArmor = settingState("Armor", equipArmor);
+					return "false";
+				case "h":	
+				case "help":
+					PrintHelp(val);
+					return "false";
+				case "helm":
+				case "helmet":
+					if(equipHelmet)
+						equipHelmet = settingState("Helmet", equipHelmet);
+					else
+						equipHelmet = settingState("Helmet", equipHelmet);
+					return "false";
+				case "b":
+				case "bump":
+				case "bumpmines":
+					if(giveBumpMines)
+					{
+						SendToConsole("sv_falldamage_scale 1");
+						giveBumpMines = settingState("Bump Mines", giveBumpMines);
+					}
+					else
+					{
+						SendToConsole("sv_falldamage_scale 0");
+						giveBumpMines = settingState("Bump Mines", giveBumpMines);
+					}
+					return "false";
+				case "reset":
+					Reset();
+					return "false";
+				case "bot":
+				case "bots":
+					if(enableBots)
+					{
+						SendToConsole("bot_kick");
+						SendToConsole("mp_restartgame 1");
+						enableBots = settingState("Bots", enableBots);
+					}
+					else
+					{
+						SendToConsole("bot_quota 4");
+						enableBots = settingState("Bots", enableBots);
+					}
+					return "false";
+				case "random":
+				case "r":
+					RandomWeapons(val);
+					return "false";
+				default:
+					ScriptPrintMessageChatAll(" \x07 Invalid command.");
+					return "false";
+			}
         }
     }
 }
