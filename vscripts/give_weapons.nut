@@ -147,12 +147,12 @@ function GivePlayerWeapons(player, id)
 ::OnGameEvent_player_say <- function(data)
 {
 	local msg = data.text
-	if(msg.slice(0,1) != "!")
-		return
-	
-	local result = ParseUserInput(msg.slice(1), data.userid);
 	local player = VS.GetPlayerByUserid(data.userid);
 
+	if(msg.slice(0,1) != "!")
+		return
+
+	ParseUserInput(msg.slice(1), data.userid)
 	//sometimes i don't want to update the players weapons
 	if(result != null && result != "false") 
 		GivePlayerWeapons(player, data.userid);
