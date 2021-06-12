@@ -19,7 +19,7 @@ IncludeScript("vs_library")
 
 ::mainScript <- 0;
 
-class CSPlayer
+::CSPlayer <- class
 {
 	ID = null;
 	Primary = "weapon_ak47";
@@ -37,11 +37,6 @@ class CSPlayer
 	}
 }
 
-function OnPostSpawn() 
-{
-	mainScript = self.GetScriptScope();
-}
-
 ::OnGameEvent_player_say <- function(data)
 {
 	local msg = data.text
@@ -55,9 +50,12 @@ function OnPostSpawn()
 	if(result != null && result != "false") 
 		GiveWeapons(false, player, data.userid);
 }.bindenv(this)
+
 //TODO FIGURE out if i could use player connect to assign ids instead
 ::OnGameEvent_round_start <- function(data)
 {
+	VS.ValidateUseridAll()
+
 	if(ScriptGetRoundsPlayed() == 0)
 		ScriptPrintMessageChatAll(" \x04 Type !help for command help!");
 
@@ -76,12 +74,9 @@ function OnPostSpawn()
 			GiveBotWeapons(player);
 	}
 	GiveWeapons(true, null, null);
-	local ft = FrameTime();
-	foreach( i,v in ::VS.GetAllPlayers() )
-		::delay("::VS.Events.ForceValidateUserid(activator)", i*ft, ::ENT_SCRIPT, v);
-}.bindenv(this);
+}//.bindenv(this);
 
-function AssignUserID(id)
+::AssignUserID <- function(id)
 {
 	if(!Players.len())
 		return true;
@@ -95,7 +90,7 @@ function AssignUserID(id)
 	}
 }
 
-function GiveBotWeapons(player)
+::GiveBotWeapons<- function(player)
 {
 	EntFire("equip_strip", "Use", "", 0, player);
 		
@@ -110,26 +105,7 @@ function GiveBotWeapons(player)
 
 	Give(knifeList[rndint(knifeList.len())], player);	
 	EntFire("weapon_knife", "addoutput", "classname weapon_knifegg");
-}
-
-
-//WTF does this do?
-::_init_scope <- function(s)
-{
-	s.ValidateScriptScope();
-	s = s.GetScriptScope();
-
-	if(!("userid" in s)) 
-		s.userid <- "";
-	if(!("networkid" in s)) 
-		s.networkid <- "";
-	if(!("name" in s)) 
-		s.name <- "";
-	if(!("bot" in s)) 
-		s.bot <- s.networkid == "BOT";
-
-	return s;
-}
+}.bindenv(this)
 
 function SettingState(option, state)
 {
@@ -255,7 +231,7 @@ function ParseUserInput(msg, id)
     }
 }
 
-function GiveWeapons(server, p, id)	
+::GiveWeapons <- function(server, p, id)
 {
 	for(local i = 0; i < Players.len(); i++)
 	{
@@ -282,7 +258,7 @@ function GiveWeapons(server, p, id)
 			GiveItems(p, i);
 		}
 	}
-}
+}.bindenv(this)
 
 function GiveItems(player, i)
 {
