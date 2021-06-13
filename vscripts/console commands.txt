@@ -38,3 +38,16 @@ sv_full_alltalk 1
 sv_talk_after_dying_time 1 
 sv_talk_enemy_dead 1 
 sv_talk_enemy_living 1 
+
+Color Config
+-------------
+Default: \x01
+Dark Red: \x02
+Purple: \x03
+Green: \x04
+Light Green: \x05
+Lime Green: \x06
+Red: \x07
+Grey: \x08
+Orange: \x09
+-------------

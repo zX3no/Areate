@@ -1,25 +1,6 @@
-//This script allows players to change their weapons using chat commands
-
-/*
-Color Config
--------------
-Default: \x01
-Dark Red: \x02
-Purple: \x03
-Green: \x04
-Light Green: \x05
-Lime Green: \x06
-Red: \x07
-Grey: \x08
-Orange: \x09
--------------
-*/
-
 IncludeScript("vs_library")
 
-::mainScript <- 0;
-
-::CSPlayer <- class
+class CSPlayer
 {
 	ID = null;
 	Primary = "weapon_ak47";
@@ -37,6 +18,30 @@ IncludeScript("vs_library")
 	}
 }
 
+::OnGameEvent_round_start <- function(data)
+{
+	VS.ValidateUseridAll()
+
+	if(ScriptGetRoundsPlayed() == 0)
+		ScriptPrintMessageChatAll(" \x04 Type !help for command help!");
+
+	if(!enableBots)
+		SendToConsole("bot_kick")
+
+	foreach(player in ::VS.GetAllPlayers())
+	{
+		local s = InitScope(player);
+		if(AssignUserID(s.userid) && !s.bot && s.userid != null)
+		{
+			Players.push(CSPlayer(s.userid));
+			ScriptPrintMessageChatAll(" \x04 Assigning ID \x07"+s.userid+"\x04 to \x07"+s.name);
+		}
+		else if(s.bot)
+			GiveBotWeapons(player);
+	}
+	GiveWeapons(true, null, null);
+}.bindenv(this);
+
 ::OnGameEvent_player_say <- function(data)
 {
 	local msg = data.text
@@ -51,32 +56,7 @@ IncludeScript("vs_library")
 		GiveWeapons(false, player, data.userid);
 }.bindenv(this)
 
-//TODO FIGURE out if i could use player connect to assign ids instead
-::OnGameEvent_round_start <- function(data)
-{
-	VS.ValidateUseridAll()
-
-	if(ScriptGetRoundsPlayed() == 0)
-		ScriptPrintMessageChatAll(" \x04 Type !help for command help!");
-
-	if(!enableBots)
-		SendToConsole("bot_kick")
-
-	foreach(player in ::VS.GetAllPlayers())
-	{
-		local s = _init_scope(player);
-		if(AssignUserID(s.userid) && !s.bot)
-		{
-			Players.push(CSPlayer(s.userid));
-			ScriptPrintMessageChatAll(" \x04 Assigning ID \x07"+s.userid+"\x04 to \x07"+s.name);
-		}
-		else if(s.bot)
-			GiveBotWeapons(player);
-	}
-	GiveWeapons(true, null, null);
-}//.bindenv(this);
-
-::AssignUserID <- function(id)
+function AssignUserID(id)
 {
 	if(!Players.len())
 		return true;
@@ -90,10 +70,8 @@ IncludeScript("vs_library")
 	}
 }
 
-::GiveBotWeapons<- function(player)
+function GiveBotWeapons(player)
 {
-	EntFire("equip_strip", "Use", "", 0, player);
-		
 	GiveArmor(player);
 
 	if(randomPrimary)
@@ -105,7 +83,7 @@ IncludeScript("vs_library")
 
 	Give(knifeList[rndint(knifeList.len())], player);	
 	EntFire("weapon_knife", "addoutput", "classname weapon_knifegg");
-}.bindenv(this)
+}
 
 function SettingState(option, state)
 {
@@ -113,7 +91,6 @@ function SettingState(option, state)
 		ScriptPrintMessageChatAll(" \x03" + option + " is: \x08Off");
 	else
 		ScriptPrintMessageChatAll(" \x03" + option + " is: \x05On");
-
 	return !state;
 }
 
@@ -231,7 +208,7 @@ function ParseUserInput(msg, id)
     }
 }
 
-::GiveWeapons <- function(server, p, id)
+function GiveWeapons(server, p, id)
 {
 	for(local i = 0; i < Players.len(); i++)
 	{
@@ -258,7 +235,7 @@ function ParseUserInput(msg, id)
 			GiveItems(p, i);
 		}
 	}
-}.bindenv(this)
+}
 
 function GiveItems(player, i)
 {
@@ -697,4 +674,21 @@ function Reset()
 {
 	Players = [];	
 	ScriptPrintMessageChatAll(" \x07 ALL ID'S ARE RESET");
+}
+
+function InitScope(s)
+{
+	s.ValidateScriptScope();
+	s = s.GetScriptScope();
+
+	if(!("userid" in s)) 
+		s.userid <- null;
+	if(!("networkid" in s)) 
+		s.networkid <- null;
+	if(!("name" in s)) 
+		s.name <- null;
+	if(!("bot" in s)) 
+		s.bot <- s.networkid == "BOT";
+
+	return s;
 }
