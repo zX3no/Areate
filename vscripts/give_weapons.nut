@@ -6,7 +6,6 @@ class CSPlayer
 	ID = null;
 	Name = null;
 	NetworkID = null;
-	Bot = false;
 	Primary = "weapon_ak47";
 	Secondary = "weapon_deagle";
 	Knife = "weapon_knife_m9_bayonet";
@@ -29,8 +28,6 @@ class CSPlayer
 			Name = null;
 		else
 			Name = player.name;
-		if(!("bot" in player)) 
-			Bot = player.networkid == "BOT";
 
 		ScriptPrintMessageChatAll(" \x04 Assigning ID \x07" + ID + "\x04 to \x07" + Name);
     }
@@ -40,11 +37,18 @@ class CSPlayer
 		return ID.tostring();
 	}
 }
+
 ::OnGameEvent_player_spawn <- function(data)
 {
-	if(AssignUserID(data.userid))
+	local player = VS.GetPlayerByUserid(data.userid)
+
+	if(IsBot(player))
+		GiveBotWeapons(player)
+	else if(AssignUserID(data.userid))
 		Players.push(CSPlayer(data.userid));
+
 }.bindenv(this);
+
 
 ::OnGameEvent_round_start <- function(data)
 {
@@ -56,19 +60,10 @@ class CSPlayer
 	if(!enableBots)
 		SendToConsole("bot_kick")
 
-	/*
 	foreach(player in ::VS.GetAllPlayers())
-	{
-		local s = InitScope(player);
-		if(AssignUserID(s.userid) && !s.bot && s.userid != null)
-		{
-			Players.push(CSPlayer(s.userid));
-			ScriptPrintMessageChatAll(" \x04 Assigning ID \x07"+s.userid+"\x04 to \x07"+s.name);
-		}
-		else if(s.bot)
+		if(IsBot(player))
 			GiveBotWeapons(player);
-	}
-	*/
+
 	GiveWeapons(true, null, null);
 }.bindenv(this);
 
@@ -80,52 +75,13 @@ class CSPlayer
 	if(msg.slice(0,1) != "!")
 		return
 
-	local result = ParseUserInput(msg.slice(1), data.userid)
+	local result = UserInput(msg.slice(1), data.userid)
 	
 	if(result != null && result != "false") 
 		GiveWeapons(false, player, data.userid);
 }.bindenv(this)
 
-function AssignUserID(id)
-{
-	if(!Players.len())
-		return true;
-	
-	for(local i = 0; i < Players.len(); i++)
-	{
-		if(Players[i].ID == id)
-			return false;
-		else
-			return true;
-	}
-}
-
-function GiveBotWeapons(player)
-{
-	GiveArmor(player);
-
-	if(randomPrimary)
-		Give(primaryList[rndint(primaryList.len())], player);
-	else
-		Give(competitiveList[rndint(competitiveList.len())], player);
-
-	Give(secondaryList[rndint(secondaryList.len())], player);
-
-	Give(knifeList[rndint(knifeList.len())], player);	
-	EntFire("weapon_knife", "addoutput", "classname weapon_knifegg");
-	return false;
-}
-
-function SettingState(option, state)
-{
-	if(state)
-		ScriptPrintMessageChatAll(" \x03" + option + " is: \x08Off");
-	else
-		ScriptPrintMessageChatAll(" \x03" + option + " is: \x05On");
-	return !state;
-}
-
-function ParseUserInput(msg, id)
+function UserInput(msg, id)
 {
 	local buffer = split(msg, " ")
 	local val, cmd = buffer[0].tolower();
@@ -137,13 +93,13 @@ function ParseUserInput(msg, id)
 	{
 		case "g":
 		case "gun":
-			if(SetPrimary(val,id))
+			if(SetPrimary(val, id))
 				return "true";
 			else 
 				return "false";
 		case "p":
 		case "pistol":
-			if(SetSecondary(val,id))
+			if(SetSecondary(val, id))
 				return "true";
 			else 
 				return "false";
@@ -231,7 +187,7 @@ function ParseUserInput(msg, id)
 			return "false";
 	}
 }
-
+//TODO rename this mess jesus
 function GiveWeapons(server, p, id)
 {
 	for(local i = 0; i < Players.len(); i++)
@@ -241,24 +197,39 @@ function GiveWeapons(server, p, id)
 			local player = VS.GetPlayerByUserid(Players[i].ID);
 			
 			if(randomPrimary)
-				Players[i].Primary = primaryList[rndint(primaryList.len())];
+				Players[i].Primary = primaryList[RandomInt(primaryList.len())];
 			else if(randomCompetitive)
-				Players[i].Primary = competitiveList[rndint(competitiveList.len())]; 
+				Players[i].Primary = competitiveList[RandomInt(competitiveList.len())]; 
 		
 			if(randomSecondary)
-				Players[i].Secondary = secondaryList[rndint(secondaryList.len())];
+				Players[i].Secondary = secondaryList[RandomInt(secondaryList.len())];
 
 			if(randomKnife)
-				Players[i].Knife = knifeList[rndint(knifeList.len())];
+				Players[i].Knife = knifeList[RandomInt(knifeList.len())];
 
 			GiveItems(player, i);
-
 		}
 		else if(Players[i].ID == id)
 		{
 			GiveItems(p, i);
 		}
 	}
+}
+
+function GiveBotWeapons(player)
+{
+	GiveArmor(player);
+
+	if(randomPrimary)
+		Give(primaryList[RandomInt(primaryList.len())], player);
+	else
+		Give(competitiveList[RandomInt(competitiveList.len())], player);
+
+	Give(secondaryList[RandomInt(secondaryList.len())], player);
+
+	Give(knifeList[RandomInt(knifeList.len())], player);	
+	EntFire("weapon_knife", "addoutput", "classname weapon_knifegg");
+	return false;
 }
 
 function GiveItems(player, i)
@@ -291,88 +262,6 @@ function Give(weapon, player)
     EntFireByHandle(equip, "use", "", 0, player, player)
     
     equip.Destroy()
-}
-
-function RandomWeapons(val)
-{
-	switch(val)
-	{
-		case "p":
-		case "primary":
-			if(randomPrimary)
-				randomPrimary = SettingState("Random Primary", randomPrimary);
-			else
-			{
-				randomCompetitive = false;
-				randomPrimary = SettingState("Random Primary", randomPrimary);
-			}
-			break;
-		case "s":
-		case "secondary":
-		case "sec":
-			if(randomSecondary)
-				randomSecondary = SettingState("Random Secondary", randomSecondary);
-			else
-				randomSecondary = SettingState("Random Secondary", randomSecondary);
-			break;
-		case "k":
-		case "knife":
-			if(randomKnife)
-				randomKnife = SettingState("Random Knife", randomKnife);
-			else
-				randomKnife = SettingState("Random Knife", randomKnife);
-			break;
-		case "c":
-		case "comp":
-		case "competitive":
-			if(randomCompetitive)
-				randomCompetitive = SettingState("Random Competitive", randomCompetitive);
-			else
-			{
-				randomPrimary = false;
-				randomCompetitive = SettingState("Random Competitive", randomCompetitive);
-			}
-			break;
-		default:
-			SettingState("Random Primaries", !randomPrimary);
-			SettingState("Random Secondaries", !randomSecondary);
-			SettingState("Random Knives", !randomKnife);
-			SettingState("Random Competitive", !randomCompetitive);
-			break;
-	}
-}
-
-function PrintHelp(val)
-{
-	switch(val)
-	{
-		case "3":
-			ScriptPrintMessageChatAll(" \x04 Page 3/3");
-			ScriptPrintMessageChatAll(" \x04 --------------------------------------------------------------------------------------");
-			ScriptPrintMessageChatAll(" \x04 !bot |\x05 toggle bots");
-			ScriptPrintMessageChatAll(" \x04 !reset: \x05 Players are assigned id's on connect, however sometimes these can be broken from players reconnecting or bot's taking id's for themeselves. \x03 ¯\\_\x28ツ\x29_/¯");
-			ScriptPrintMessageChatAll(" \x07 Use !reset to fix this!"); 
-			break;
-		case "2":
-			ScriptPrintMessageChatAll(" \x04 Page 2/3");
-			ScriptPrintMessageChatAll(" \x04 --------------------------------------------------------------------------------------");
-			ScriptPrintMessageChatAll(" \x04 !random \x05 toggles random weapons eg. !random knife");
-			ScriptPrintMessageChatAll(" \x05 - options: primary \x04|\x05  secondary \x04|\x05 knife \x04|\x05 competitive")
-			ScriptPrintMessageChatAll(" \x04 !armor \x05 toggles armor");
-			ScriptPrintMessageChatAll(" \x04 !bumpmines\x05 toggles bump mines");
-			ScriptPrintMessageChatAll(" \x04 !helmet \x05 toggles helmets");
-			ScriptPrintMessageChatAll(" \x04 !hs \x05 toggles headshot only");
-			break;
-		case "1":
-		default:
-			ScriptPrintMessageChatAll(" \x04 Page 1/3");
-			ScriptPrintMessageChatAll(" \x04 --------------------------------------------------------------------------------------");
-			ScriptPrintMessageChatAll(" \x04 Write the command without arguments to list weapons \x05 eg. !gun");
-			ScriptPrintMessageChatAll(" \x04 !gun Name ‎‎\x05 eg. !gun ak");
-			ScriptPrintMessageChatAll(" \x04 !pistol Name \x05 eg. !pistol deagle");
-			ScriptPrintMessageChatAll(" \x04 !knife Name \x05 eg. !knife butterfly");
-			break;
-	}
 }
 
 function SetPrimary(val, id)
@@ -712,7 +601,65 @@ function SetKnife(val, id)
 	return true;
 }
 
-function rndint(max) {
-	local roll = rand() % max;
-    return roll.tointeger();
+function RandomWeapons(val)
+{
+	switch(val)
+	{
+		case "p":
+		case "primary":
+			if(randomPrimary)
+				randomPrimary = SettingState("Random Primary", randomPrimary);
+			else
+			{
+				randomCompetitive = false;
+				randomPrimary = SettingState("Random Primary", randomPrimary);
+			}
+			break;
+		case "s":
+		case "secondary":
+		case "sec":
+			if(randomSecondary)
+				randomSecondary = SettingState("Random Secondary", randomSecondary);
+			else
+				randomSecondary = SettingState("Random Secondary", randomSecondary);
+			break;
+		case "k":
+		case "knife":
+			if(randomKnife)
+				randomKnife = SettingState("Random Knife", randomKnife);
+			else
+				randomKnife = SettingState("Random Knife", randomKnife);
+			break;
+		case "c":
+		case "comp":
+		case "competitive":
+			if(randomCompetitive)
+				randomCompetitive = SettingState("Random Competitive", randomCompetitive);
+			else
+			{
+				randomPrimary = false;
+				randomCompetitive = SettingState("Random Competitive", randomCompetitive);
+			}
+			break;
+		default:
+			SettingState("Random Primaries", !randomPrimary);
+			SettingState("Random Secondaries", !randomSecondary);
+			SettingState("Random Knives", !randomKnife);
+			SettingState("Random Competitive", !randomCompetitive);
+			break;
+	}
 }
+
+function AssignUserID(id)
+{
+	if(!Players.len())
+		return true;
+	for(local i = 0; i < Players.len(); i++)
+	{
+		if(Players[i].ID == id)
+			return false;
+		else
+			return true;
+	}
+}
+
