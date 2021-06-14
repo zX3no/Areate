@@ -1,15 +1,38 @@
 IncludeScript("vs_library")
+IncludeScript("util")
 
 class CSPlayer
 {
 	ID = null;
+	Name = null;
+	NetworkID = null;
+	Bot = false;
 	Primary = "weapon_ak47";
 	Secondary = "weapon_deagle";
 	Knife = "weapon_knife_m9_bayonet";
 
 	constructor(id) 
 	{
-		ID = id;
+		local player = VS.GetPlayerByUserid(id);
+		player.ValidateScriptScope();
+		player = player.GetScriptScope();
+
+		if(!("userid" in player)) 
+			ID = null;
+		else
+			ID = id;
+		if(!("networkid" in player)) 
+			NetworkID  = null;
+		else
+			NetworkID = player.networkid;
+		if(!("name" in player)) 
+			Name = null;
+		else
+			Name = player.name;
+		if(!("bot" in player)) 
+			Bot = player.networkid == "BOT";
+
+		ScriptPrintMessageChatAll(" \x04 Assigning ID \x07" + ID + "\x04 to \x07" + Name);
     }
 
 	function GetUserID()
@@ -17,6 +40,11 @@ class CSPlayer
 		return ID.tostring();
 	}
 }
+::OnGameEvent_player_spawn <- function(data)
+{
+	if(AssignUserID(data.userid))
+		Players.push(CSPlayer(data.userid));
+}.bindenv(this);
 
 ::OnGameEvent_round_start <- function(data)
 {
@@ -28,6 +56,7 @@ class CSPlayer
 	if(!enableBots)
 		SendToConsole("bot_kick")
 
+	/*
 	foreach(player in ::VS.GetAllPlayers())
 	{
 		local s = InitScope(player);
@@ -39,6 +68,7 @@ class CSPlayer
 		else if(s.bot)
 			GiveBotWeapons(player);
 	}
+	*/
 	GiveWeapons(true, null, null);
 }.bindenv(this);
 
@@ -83,6 +113,7 @@ function GiveBotWeapons(player)
 
 	Give(knifeList[rndint(knifeList.len())], player);	
 	EntFire("weapon_knife", "addoutput", "classname weapon_knifegg");
+	return false;
 }
 
 function SettingState(option, state)
@@ -102,110 +133,103 @@ function ParseUserInput(msg, id)
 	if(buffer.len() > 1)
         val = buffer[1];
 	
-    //TODO move some of this shit into other functions 
-	for(local i = 0; i < Players.len(); i++)
-    {
-        if(Players[i].ID == id)
-        {
-            switch(cmd)
-            {
-                case "g":
-                case "gun":
-					if(SetPrimary(val,i))
-						return "true";
-					else 
-						return "false";
-				case "p":
-				case "pistol":
-					if(SetSecondary(val,i))
-						return "true";
-					else 
-						return "false";
-					return "true";
-				case "k":
-				case "knife":
-					if(SetKnife(val,i))
-						return "true";
-					else 
-						return "false";
+	switch(cmd)
+	{
+		case "g":
+		case "gun":
+			if(SetPrimary(val,id))
 				return "true";
-				case "hs":
-				case "headshot":
-				case "headshotonly":
-					if(headshotOnly)
-					{
-						headshotOnly = SettingState("Headshot Only", headshotOnly);
-						SendToConsole("mp_damage_headshot_only 0");
-					}
-					else
-					{
-						headshotOnly = SettingState("Headshot Only", headshotOnly);
-						SendToConsole("mp_damage_headshot_only 1");
-					}
-					return "false";
-				case "a":
-				case "arm":
-				case "armor":
-				case "armour":
-				case "kev":
-				case "kevlar":
-					if(equipArmor)
-						equipArmor = SettingState("Armor", equipArmor);
-					else
-						equipArmor = SettingState("Armor", equipArmor);
-					return "false";
-				case "h":	
-				case "help":
-					PrintHelp(val);
-					return "false";
-				case "helm":
-				case "helmet":
-					if(equipHelmet)
-						equipHelmet = SettingState("Helmet", equipHelmet);
-					else
-						equipHelmet = SettingState("Helmet", equipHelmet);
-					return "false";
-				case "b":
-				case "bump":
-				case "bumpmines":
-					if(giveBumpMines)
-					{
-						SendToConsole("sv_falldamage_scale 1");
-						giveBumpMines = SettingState("Bump Mines", giveBumpMines);
-					}
-					else
-					{
-						SendToConsole("sv_falldamage_scale 0");
-						giveBumpMines = SettingState("Bump Mines", giveBumpMines);
-					}
-					return "false";
-				case "reset":
-					Reset();
-					return "false";
-				case "bot":
-				case "bots":
-					if(enableBots)
-					{
-						SendToConsole("bot_kick");
-						SendToConsole("mp_restartgame 1");
-						enableBots = SettingState("Bots", enableBots);
-					}
-					else
-					{
-						SendToConsole("bot_quota 4");
-						enableBots = SettingState("Bots", enableBots);
-					}
-					return "false";
-				case "random":
-				case "r":
-					RandomWeapons(val);
-					return "false";
-				default:
-					ScriptPrintMessageChatAll(" \x07 Invalid command.");
-					return "false";
+			else 
+				return "false";
+		case "p":
+		case "pistol":
+			if(SetSecondary(val,id))
+				return "true";
+			else 
+				return "false";
+			return "true";
+		case "k":
+		case "knife":
+			if(SetKnife(val, id))
+				return "true";
+			else 
+				return "false";
+		return "true";
+		case "hs":
+		case "headshot":
+		case "headshotonly":
+			if(headshotOnly)
+			{
+				headshotOnly = SettingState("Headshot Only", headshotOnly);
+				SendToConsole("mp_damage_headshot_only 0");
 			}
-        }
-    }
+			else
+			{
+				headshotOnly = SettingState("Headshot Only", headshotOnly);
+				SendToConsole("mp_damage_headshot_only 1");
+			}
+			return "false";
+		case "a":
+		case "arm":
+		case "armor":
+		case "armour":
+		case "kev":
+		case "kevlar":
+			if(equipArmor)
+				equipArmor = SettingState("Armor", equipArmor);
+			else
+				equipArmor = SettingState("Armor", equipArmor);
+			return "false";
+		case "h":	
+		case "help":
+			PrintHelp(val);
+			return "false";
+		case "helm":
+		case "helmet":
+			if(equipHelmet)
+				equipHelmet = SettingState("Helmet", equipHelmet);
+			else
+				equipHelmet = SettingState("Helmet", equipHelmet);
+			return "false";
+		case "b":
+		case "bump":
+		case "bumpmines":
+			if(giveBumpMines)
+			{
+				SendToConsole("sv_falldamage_scale 1");
+				giveBumpMines = SettingState("Bump Mines", giveBumpMines);
+			}
+			else
+			{
+				SendToConsole("sv_falldamage_scale 0");
+				giveBumpMines = SettingState("Bump Mines", giveBumpMines);
+			}
+			return "false";
+		case "reset":
+			Reset();
+			return "false";
+		case "bot":
+		case "bots":
+			if(enableBots)
+			{
+				SendToConsole("bot_kick");
+				SendToConsole("mp_restartgame 1");
+				enableBots = SettingState("Bots", enableBots);
+			}
+			else
+			{
+				SendToConsole("bot_quota 4");
+				enableBots = SettingState("Bots", enableBots);
+			}
+			return "false";
+		case "random":
+		case "r":
+			RandomWeapons(val);
+			return "false";
+		default:
+			ScriptPrintMessageChatAll(" \x07 Invalid command.");
+			return "false";
+	}
 }
 
 function GiveWeapons(server, p, id)
@@ -351,7 +375,7 @@ function PrintHelp(val)
 	}
 }
 
-function SetPrimary(val, i)
+function SetPrimary(val, id)
 {
 	if(val == null)
 	{
@@ -365,6 +389,13 @@ function SetPrimary(val, i)
 		return false;
 	}
 
+	for(::i <- 0; i < Players.len(); i++)
+    {
+        if(Players[i].ID == id)
+			break;
+		else
+			return false;
+	}
 	switch (val)
 	{
 		//Rifle
@@ -476,7 +507,7 @@ function SetPrimary(val, i)
 	return true;
 }
 
-function SetSecondary(val, i)
+function SetSecondary(val, id)
 {
 	if(val == null)
 	{
@@ -484,6 +515,14 @@ function SetSecondary(val, i)
 		ScriptPrintMessageChatAll(" \x05 USP-S, P200, Glock, Tec-9, FiveSeven, Dual Berettas, P250");
 		ScriptPrintMessageChatAll(" \x05 CZ-75, Deagle, Revolver");
 		return false;
+	}
+	
+	for(::i <- 0; i < Players.len(); i++)
+    {
+        if(Players[i].ID == id)
+			break;
+		else
+			return false;
 	}
 
 	switch (val)
@@ -556,7 +595,7 @@ function SetSecondary(val, i)
 	return true;
 }
 
-function SetKnife(val, i)
+function SetKnife(val, id)
 {
 	if(val == null)
 	{
@@ -565,6 +604,13 @@ function SetKnife(val, i)
 		ScriptPrintMessageChatAll(" \x05 Bowie, Ursus, Navaja, Stiletto, Talon, Classic, Skeleton, Nomad");
 		ScriptPrintMessageChatAll(" \x05 Paracord, Survival, Ghost, Gold, Falchion");
 		return false;
+	}
+	for(::i <- 0; i < Players.len(); i++)
+    {
+        if(Players[i].ID == id)
+			break;
+		else
+			return false;
 	}
 
 	switch (val)
@@ -576,6 +622,7 @@ function SetKnife(val, i)
 		case "bayonet":
 			Players[i].Knife = "weapon_bayonet";
 			break;
+		case "but":
 		case "butt":
 		case "butterfly":
 			Players[i].Knife = "weapon_knife_butterfly";
@@ -668,27 +715,4 @@ function SetKnife(val, i)
 function rndint(max) {
 	local roll = rand() % max;
     return roll.tointeger();
-}
-
-function Reset()
-{
-	Players = [];	
-	ScriptPrintMessageChatAll(" \x07 ALL ID'S ARE RESET");
-}
-
-function InitScope(s)
-{
-	s.ValidateScriptScope();
-	s = s.GetScriptScope();
-
-	if(!("userid" in s)) 
-		s.userid <- null;
-	if(!("networkid" in s)) 
-		s.networkid <- null;
-	if(!("name" in s)) 
-		s.name <- null;
-	if(!("bot" in s)) 
-		s.bot <- s.networkid == "BOT";
-
-	return s;
 }
