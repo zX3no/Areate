@@ -4,20 +4,19 @@
 	ScriptPrintMessageChatAll(" \x07 ALL ID'S ARE RESET");
 }
 
-::IsBot <- function(player)
-{
-	player.ValidateScriptScope();
-	player = player.GetScriptScope();
-	return player.networkid == "BOT"
-}
-
 ::SettingState <- function(option, state)
 {
 	if(state)
-		ScriptPrintMessageChatAll(" \x03" + option + " is: \x08Off");
+		ScriptPrintMessageChatAll(" \x03" + option + ": \x08Off");
 	else
-		ScriptPrintMessageChatAll(" \x03" + option + " is: \x05On");
+		ScriptPrintMessageChatAll(" \x03" + option + ": \x05On");
 	return !state;
+}
+
+::RandomInt <- function(max) 
+{
+	local roll = rand() % max;
+    return roll.tointeger();
 }
 
 ::PrintHelp <- function(val)
@@ -51,10 +50,4 @@
 			ScriptPrintMessageChatAll(" \x04 !knife Name \x05 eg. !knife butterfly");
 			break;
 	}
-}
-
-::RandomInt <- function(max) 
-{
-	local roll = rand() % max;
-    return roll.tointeger();
 }

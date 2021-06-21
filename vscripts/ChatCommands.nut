@@ -1,5 +1,5 @@
-IncludeScript("vs_library")
-IncludeScript("util")
+IncludeScript("VSLibrary")
+IncludeScript("Util")
 
 class CSPlayer
 {
@@ -38,18 +38,21 @@ class CSPlayer
 	}
 }
 
-::OnGameEvent_player_spawn <- function(data)
+::IsBot <- function(player)
 {
-	local player = VS.GetPlayerByUserid(data.userid)
+	player.ValidateScriptScope();
+	player = player.GetScriptScope();
+	return player.networkid == "BOT"
+}
 
-	if(IsBot(player))
-		GiveBotWeapons(player)
-	else if(AssignUserID(data.userid))
-		Players.push(CSPlayer(data.userid));
+::GetScope <- function(player)
+{
+	player.ValidateScriptScope();
+	player = player.GetScriptScope();
+	return player;
+}
 
-}.bindenv(this);
-
-
+//TOOD see if i can remove player spawn thing from map
 ::OnGameEvent_round_start <- function(data)
 {
 	VS.ValidateUseridAll()
@@ -61,8 +64,23 @@ class CSPlayer
 		SendToConsole("bot_kick")
 
 	foreach(player in ::VS.GetAllPlayers())
+	{
+		local Scope = GetScope(player);
 		if(IsBot(player))
 			GiveBotWeapons(player);
+		else
+		{
+			local exist = false;
+
+			for(local i = 0; i < Players.len(); i++)
+			{
+				if(Players[i].ID == Scope.userid)
+					exist = true;
+			}	
+			if(!exist)
+				Players.push(CSPlayer(Scope.userid));
+		}
+	}
 
 	GiveWeapons(true, null, null);
 }.bindenv(this);
@@ -77,7 +95,7 @@ class CSPlayer
 
 	local result = UserInput(msg.slice(1), data.userid)
 	
-	if(result != null && result != "false") 
+	if(result == "true") 
 		GiveWeapons(false, player, data.userid);
 }.bindenv(this)
 
@@ -188,6 +206,7 @@ function UserInput(msg, id)
 	}
 }
 //TODO rename this mess jesus
+//TODO could change player array to vector and iterate idk if i can do that with C-lite though?
 function GiveWeapons(server, p, id)
 {
 	for(local i = 0; i < Players.len(); i++)
@@ -279,12 +298,9 @@ function SetPrimary(val, id)
 	}
 
 	for(::i <- 0; i < Players.len(); i++)
-    {
         if(Players[i].ID == id)
 			break;
-		else
-			return false;
-	}
+
 	switch (val)
 	{
 		//Rifle
@@ -294,30 +310,30 @@ function SetPrimary(val, id)
 			break;
 		case "m4":
 		case "m4a4":
-			 Players[i].Primary = "weapon_m4a1";
+			Players[i].Primary = "weapon_m4a1";
 			break;
 		case "m4a1":
 		case "m4a1s":
-			 Players[i].Primary = "weapon_m4a1_silencer";
+			Players[i].Primary = "weapon_m4a1_silencer";
 			break;
 		case "aug":
-			 Players[i].Primary = "weapon_aug";
+			Players[i].Primary = "weapon_aug";
 			break;
 		case "sg":
 		case "sg553":
 		case "codgun":
-			 Players[i].Primary = "weapon_sg556";
+			Players[i].Primary = "weapon_sg556";
 			break;
 		case "galil":
 		case "gal":
-			 Players[i].Primary = "weapon_galilar";
+			Players[i].Primary = "weapon_galilar";
 			break;
 		case "fam":
 		case "famas":
-			 Players[i].Primary = "weapon_famas";
+			Players[i].Primary = "weapon_famas";
 			break;
 		case "awp":
-			 Players[i].Primary = "weapon_awp";
+			Players[i].Primary = "weapon_awp";
 			break;
 		case "ssg":
 		case "ssg08":
@@ -649,17 +665,3 @@ function RandomWeapons(val)
 			break;
 	}
 }
-
-function AssignUserID(id)
-{
-	if(!Players.len())
-		return true;
-	for(local i = 0; i < Players.len(); i++)
-	{
-		if(Players[i].ID == id)
-			return false;
-		else
-			return true;
-	}
-}
-

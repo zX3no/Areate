@@ -2,7 +2,7 @@ versioninfo
 {
 	"editorversion" "400"
 	"editorbuild" "8456"
-	"mapversion" "545"
+	"mapversion" "546"
 	"formatversion" "100"
 	"prefab" "0"
 }
@@ -86,7 +86,7 @@ viewsettings
 world
 {
 	"id" "1"
-	"mapversion" "545"
+	"mapversion" "546"
 	"classname" "worldspawn"
 	"detailmaterial" "detail/detailsprites"
 	"detailvbsp" "detail.vbsp"
@@ -52440,7 +52440,7 @@ entity
 	"id" "1014235"
 	"classname" "logic_script"
 	"targetname" "@script"
-	"vscripts" "give_weapons.nut"
+	"vscripts" "ChatCommands.nut"
 	"origin" "0 -64 16.934"
 	editor
 	{
@@ -52473,7 +52473,7 @@ entity
 	"Subdiv" "2"
 	"TextureScale" "1"
 	"Type" "0"
-	"vscripts" "globalvariables.nut"
+	"vscripts" "GlobalVariables.nut"
 	"Width" "2"
 	"origin" "0 -16 14.375"
 	editor
@@ -112116,8 +112116,8 @@ cameras
 	"activecamera" "0"
 	camera
 	{
-		"position" "[67.5788 74.9994 190.525]"
-		"look" "[37.3507 -106.203 -2.3853]"
+		"position" "[18.1464 66.4923 121.332]"
+		"look" "[30.7326 -179.474 19.8194]"
 	}
 	camera
 	{
