@@ -8,14 +8,14 @@
   
   Gives the player a weapon of their choice. 
   
-  [A full list of all possible weapon commands and their abbreviations](https://github.com/zX3no/WeaponScript/blob/main/vscripts/give_weapons.nut).
+  [A full list of all possible weapon commands and their abbreviations](https://github.com/zX3no/WeaponScript/blob/main/vscripts/ChatCommands.nut#L304).
 * `!random`
   
   Mode: `Primary, Secondary, Knife, Competitive`
 
   Syntax: `!random mode`
 
-  Gives all players random weapons. See [PrimaryList, PistolList, KnifeList and CompetitiveList.](https://github.com/zX3no/WeaponScript/blob/main/vscripts/globalvariables.nut)
+  Gives all players random weapons. See [PrimaryList, PistolList, KnifeList and CompetitiveList.](https://github.com/zX3no/WeaponScript/blob/main/vscripts/GlobalVariables.nut)
 
 * `!armor`
   
