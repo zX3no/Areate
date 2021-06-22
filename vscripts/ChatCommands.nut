@@ -38,21 +38,6 @@ class CSPlayer
 	}
 }
 
-::IsBot <- function(player)
-{
-	player.ValidateScriptScope();
-	player = player.GetScriptScope();
-	return player.networkid == "BOT"
-}
-
-::GetScope <- function(player)
-{
-	player.ValidateScriptScope();
-	player = player.GetScriptScope();
-	return player;
-}
-
-//TOOD see if i can remove player spawn thing from map
 ::OnGameEvent_round_start <- function(data)
 {
 	VS.ValidateUseridAll()

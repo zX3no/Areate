@@ -1,3 +1,24 @@
+IncludeScript("VSLibrary")
+
+::IsBot <- function(player)
+{
+	player = GetScope(player);
+	if (player.networkid == "")
+	{
+		ScriptPrintMessageChatAll(" \x07 Server is corrupt? Unlucky!");
+		return true;
+	}
+	return player.networkid == "BOT"
+}
+
+::GetScope <- function(player)
+{
+	player.ValidateScriptScope();
+	player = player.GetScriptScope();
+	return player;
+}
+
+
 ::Reset <- function()
 {
 	Players = [];	
