@@ -1,8 +1,8 @@
 versioninfo
 {
 	"editorversion" "400"
-	"editorbuild" "8456"
-	"mapversion" "556"
+	"editorbuild" "9018"
+	"mapversion" "557"
 	"formatversion" "100"
 	"prefab" "0"
 }
@@ -86,7 +86,7 @@ viewsettings
 world
 {
 	"id" "1"
-	"mapversion" "556"
+	"mapversion" "557"
 	"classname" "worldspawn"
 	"detailmaterial" "detail/detailsprites"
 	"detailvbsp" "detail.vbsp"
@@ -52560,6 +52560,7 @@ entity
 		"OnMultiNewMap" "servercmdCommandsv_talk_enemy_dead 1 0-1"
 		"OnMultiNewMap" "servercmdCommandsv_talk_enemy_living 1 0-1"
 		"OnMultiNewMap" "servercmdCommandmp_respawn_immunitytime 00-1"
+		"OnMultiNewMap" "servercmdCommandmp_ignore_round_win_conditions 00-1"
 	}
 	"origin" "-16 -64 16"
 	editor
@@ -112115,8 +112116,8 @@ cameras
 	"activecamera" "0"
 	camera
 	{
-		"position" "[25.0039 -118.224 97.3791]"
-		"look" "[40.8154 75.3199 -84.976]"
+		"position" "[78.4495 -178.149 186.556]"
+		"look" "[-40.1944 -45.1217 -11.4084]"
 	}
 	camera
 	{

@@ -89,7 +89,7 @@ function UserInput(msg, id)
 	local val, cmd = buffer[0].tolower();
 
 	if(buffer.len() > 1)
-        val = buffer[1];
+        val = buffer[1].tolower();
 	
 	switch(cmd)
 	{
