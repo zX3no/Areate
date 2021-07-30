@@ -160,7 +160,8 @@ function UserInput(msg, id)
 			}
 			return "false";
 		case "reset":
-			Reset();
+			Players = [];	
+			ScriptPrintMessageChatAll(" \x07 ALL ID'S ARE RESET");
 			return "false";
 		case "bot":
 		case "bots":
@@ -187,8 +188,7 @@ function UserInput(msg, id)
 			return "false";
 	}
 }
-//TODO rename this mess jesus
-//TODO could change player array to vector and iterate idk if i can do that with C-lite though?
+
 function GiveWeapons(server, p, id)
 {
 	for(local i = 0; i < Players.len(); i++)
@@ -249,6 +249,7 @@ function GivePlayerEquipment(player, i)
 
 	if(giveBumpMines)
 		Give("weapon_bumpmine", player);
+
 	Give(Players[i].Primary, player)
 	Give(Players[i].Secondary, player)
 	Give(Players[i].Knife, player)
@@ -620,12 +621,6 @@ function RandomWeapons(val)
 	player.ValidateScriptScope();
 	player = player.GetScriptScope();
 	return player;
-}
-
-::Reset <- function()
-{
-	Players = [];	
-	ScriptPrintMessageChatAll(" \x07 ALL ID'S ARE RESET");
 }
 
 ::SettingState <- function(option, state)
