@@ -95,27 +95,14 @@ function UserInput(msg, id)
 	{
 		case "g":
 		case "gun":
-			if(SetPrimary(val, id))
+		case "w":
+		case "weapon":
+			if(SetWeapon(val, id))
 				return "true";
 			else 
 				return "false";
-		case "p":
-		case "pistol":
-			if(SetSecondary(val, id))
-				return "true";
-			else 
-				return "false";
-			return "true";
-		case "k":
-		case "knife":
-			if(SetKnife(val, id))
-				return "true";
-			else 
-				return "false";
-		return "true";
 		case "hs":
 		case "headshot":
-		case "headshotonly":
 			if(headshotOnly)
 			{
 				headshotOnly = SettingState("Headshot Only", headshotOnly);
@@ -140,10 +127,18 @@ function UserInput(msg, id)
 			return "false";
 		case "h":	
 		case "help":
-			PrintHelp(val);
+			ScriptPrintMessageChatAll(" \x04 !w ‎‎\x05 name \x04 | \x05 !w ak / !w tec9 / !w bayonet");
+			ScriptPrintMessageChatAll(" \x04 !random \x05 primary / secondary / knife / competitive");
+			ScriptPrintMessageChatAll(" \x04 !armor");
+			ScriptPrintMessageChatAll(" \x04 !bumpmines");
+			ScriptPrintMessageChatAll(" \x04 !helmets");
+			ScriptPrintMessageChatAll(" \x04 !headshot");
+			ScriptPrintMessageChatAll(" \x04 !bot");
+			ScriptPrintMessageChatAll(" \x07 !reset"); 
 			return "false";
 		case "helm":
 		case "helmet":
+		case "helments":
 			if(equipHelmet)
 				equipHelmet = SettingState("Helmet", equipHelmet);
 			else
@@ -151,6 +146,7 @@ function UserInput(msg, id)
 			return "false";
 		case "b":
 		case "bump":
+		case "bumpmine":
 		case "bumpmines":
 			if(giveBumpMines)
 			{
@@ -182,6 +178,7 @@ function UserInput(msg, id)
 			}
 			return "false";
 		case "random":
+		case "rand":
 		case "r":
 			RandomWeapons(val);
 			return "false";
@@ -211,18 +208,23 @@ function GiveWeapons(server, p, id)
 			if(randomKnife)
 				Players[i].Knife = knifeList[RandomInt(knifeList.len())];
 
-			GiveItems(player, i);
+			GivePlayerEquipment(player, i);
 		}
 		else if(Players[i].ID == id)
 		{
-			GiveItems(p, i);
+			GivePlayerEquipment(p, i);
 		}
 	}
 }
 
 function GiveBotWeapons(player)
 {
-	GiveArmor(player);
+	EntFire("equip_strip", "Use", "", 0, player);
+
+	if(equipArmor && equipHelmet)
+		Give("item_assaultsuit", player);
+	else if(equipArmor)
+		Give("item_kevlar", player)
 
 	if(randomPrimary)
 		Give(primaryList[RandomInt(primaryList.len())], player);
@@ -236,16 +238,7 @@ function GiveBotWeapons(player)
 	return false;
 }
 
-function GiveItems(player, i)
-{
-	GiveArmor(player);
-	Give(Players[i].Primary, player)
-	Give(Players[i].Secondary, player)
-	Give(Players[i].Knife, player)
-	EntFire("weapon_knife", "addoutput", "classname weapon_knifegg");
-}
-
-function GiveArmor(player)
+function GivePlayerEquipment(player, i)
 {
 	EntFire("equip_strip", "Use", "", 0, player);
 
@@ -256,6 +249,10 @@ function GiveArmor(player)
 
 	if(giveBumpMines)
 		Give("weapon_bumpmine", player);
+	Give(Players[i].Primary, player)
+	Give(Players[i].Secondary, player)
+	Give(Players[i].Knife, player)
+	EntFire("weapon_knife", "addoutput", "classname weapon_knifegg");
 }
 
 function Give(weapon, player)
@@ -268,24 +265,41 @@ function Give(weapon, player)
     equip.Destroy()
 }
 
-function SetPrimary(val, id)
-{
-	if(val == null)
-	{
-		ScriptPrintMessageChatAll(" \x04 Rifles:");
-		ScriptPrintMessageChatAll(" \x05 AK-47, M4A4, M4A1-S, Aug, SG 553, Galil AR, Famas, AWP, Scar-20");
-		ScriptPrintMessageChatAll(" \x05 G3SG1");
-		ScriptPrintMessageChatAll(" \x04 Heavy:")
-		ScriptPrintMessageChatAll(" \x05 Nova, XM1014, Sawed-Off, Mag-7, M249, Negev");
-		ScriptPrintMessageChatAll(" \x04 SMGs:");
-		ScriptPrintMessageChatAll(" \x05 Mac-10, MP9, MP7, MP5-SD, P90, UMP-45, PP-Bizon");
-		return false;
-	}
-
+function SetWeapon(val, id) {
+	if (!val) 
+		return PrintWeapons();
 	for(::i <- 0; i < Players.len(); i++)
         if(Players[i].ID == id)
 			break;
+	
+	local player = VS.GetPlayerByUserid(Players[i].ID);
 
+	if (ParseWeaponName(val i))
+		if (!player.GetHealth())
+			return false;
+		else return true; 
+}
+
+function PrintWeapons() {
+	ScriptPrintMessageChatAll(" \x04 Rifles:");
+	ScriptPrintMessageChatAll(" \x05 AK-47, M4A4, M4A1-S, Aug, SG 553, Galil AR, Famas, AWP, Scar-20");
+	ScriptPrintMessageChatAll(" \x05 G3SG1");
+	ScriptPrintMessageChatAll(" \x04 Heavy:")
+	ScriptPrintMessageChatAll(" \x05 Nova, XM1014, Sawed-Off, Mag-7, M249, Negev");
+	ScriptPrintMessageChatAll(" \x04 SMGs:");
+	ScriptPrintMessageChatAll(" \x05 Mac-10, MP9, MP7, MP5-SD, P90, UMP-45, PP-Bizon");
+	ScriptPrintMessageChatAll(" \x04 Pistols: ")
+	ScriptPrintMessageChatAll(" \x05 USP-S, P200, Glock, Tec-9, FiveSeven, Dual Berettas, P250");
+	ScriptPrintMessageChatAll(" \x05 CZ-75, Deagle, Revolver");
+	ScriptPrintMessageChatAll(" \x04 Knives: ");
+	ScriptPrintMessageChatAll(" \x05 M9, Bayonet, Butterfly, Karambit, Flip, Huntsman, Shadow Daggers");
+	ScriptPrintMessageChatAll(" \x05 Bowie, Ursus, Navaja, Stiletto, Talon, Classic, Skeleton, Nomad");
+	ScriptPrintMessageChatAll(" \x05 Paracord, Survival, Ghost, Gold, Falchion");
+
+	return false;
+}
+
+function ParseWeaponName(val, i) {
 	switch (val)
 	{
 		//Rifle
@@ -389,122 +403,62 @@ function SetPrimary(val, id)
 		case "ppbizon":
 			Players[i].Primary = "weapon_bizon";
 			break;	
-		default:
-			ScriptPrintMessageChatAll(" \x07 " + val + " is not a gun dumbass.");
-			return false;
-	}
-	ScriptPrintMessageChatAll(" \x04 Primary: \x05"+ Players[i].Primary);
-	return true;
-}
-
-function SetSecondary(val, id)
-{
-	if(val == null)
-	{
-		ScriptPrintMessageChatAll(" \x04 Pistols: ")
-		ScriptPrintMessageChatAll(" \x05 USP-S, P200, Glock, Tec-9, FiveSeven, Dual Berettas, P250");
-		ScriptPrintMessageChatAll(" \x05 CZ-75, Deagle, Revolver");
-		return false;
-	}
-	
-	for(::i <- 0; i < Players.len(); i++)
-    {
-        if(Players[i].ID == id)
-			break;
-		else
-			return false;
-	}
-
-	switch (val)
-	{
+		//
+		//PISTOL
+		//
 		case "usp":
+		case "usps":
 		case "usp-s":
 			Players[i].Secondary = "weapon_usp_silencer";
 			break;
-			
 		case "p2000":
 		case "p2k":
 		case "p200":
 			Players[i].Secondary = "weapon_hkp2000";
 			break;
-			
 		case "glock":
 		case "glock18":
 			Players[i].Secondary = "weapon_glock";
 			break;	
-			
 		case "tec":
 		case "tec9":
+		case "tec-9":
 			Players[i].Secondary = "weapon_tec9";
 			break;
-			
 		case "fiveseven":
 		case "57":
 		case "five":
-		case "seven":
 			Players[i].Secondary = "weapon_fiveseven";
 			break;
-		
 		case "dual":
 		case "dualies":
 		case "berettas":
 		case "dualberettas":
 			Players[i].Secondary = "weapon_elite";
 			break;
-		
 		case "deagle":
 		case "deag":
 			Players[i].Secondary = "weapon_deagle";
 			break;
-		
 		case "p250":
 		case "p25":
 		case "p2":
 			Players[i].Secondary = "weapon_p250";
 			break;
-		
 		case "cz":
 		case "cz75":
 		case "cz75a":
 			Players[i].Secondary = "weapon_cz75a";
 			break;
-			
 		case "rev":
 		case "revolver":
 		case "yeehaw":
 		case "r8":
 			Players[i].Secondary = "weapon_revolver";
 			break;
-			
-		default:
-			ScriptPrintMessageChatAll(" \x07 " + val + " is not a pistol dumbass.");
-			return false;
-	}
-
-	ScriptPrintMessageChatAll(" \x04 Pistol: \x05"+ Players[i].Secondary);
-	return true;
-}
-
-function SetKnife(val, id)
-{
-	if(val == null)
-	{
-		ScriptPrintMessageChatAll(" \x04 Knives: ");
-		ScriptPrintMessageChatAll(" \x05 M9, Bayonet, Butterfly, Karambit, Flip, Huntsman, Shadow Daggers");
-		ScriptPrintMessageChatAll(" \x05 Bowie, Ursus, Navaja, Stiletto, Talon, Classic, Skeleton, Nomad");
-		ScriptPrintMessageChatAll(" \x05 Paracord, Survival, Ghost, Gold, Falchion");
-		return false;
-	}
-	for(::i <- 0; i < Players.len(); i++)
-    {
-        if(Players[i].ID == id)
-			break;
-		else
-			return false;
-	}
-
-	switch (val)
-	{
+		//
+		//KNIFE	
+		//
 		case "m9":
 			Players[i].Knife = "weapon_knife_m9_bayonet";
 			break;
@@ -595,10 +549,9 @@ function SetKnife(val, id)
 			Players[i].Knife = "weapon_knife_ghost";
 			break;
 		default:
-			ScriptPrintMessageChatAll(" \x07 " + val + " is not a knife dumbass.");
+			ScriptPrintMessageChatAll(" \x07 " + val + " is not a weapon dumbass.");
 			return false;
 	}
-	ScriptPrintMessageChatAll(" \x04 Knife: \x05"+ Players[i].Knife);
 	return true;
 }
 
@@ -688,37 +641,4 @@ function RandomWeapons(val)
 {
 	local roll = rand() % max;
     return roll.tointeger();
-}
-
-::PrintHelp <- function(val)
-{
-	switch(val)
-	{
-		case "3":
-			ScriptPrintMessageChatAll(" \x04 Page 3/3");
-			ScriptPrintMessageChatAll(" \x04 --------------------------------------------------------------------------------------");
-			ScriptPrintMessageChatAll(" \x04 !bot |\x05 toggle bots");
-			ScriptPrintMessageChatAll(" \x04 !reset: \x05 Players are assigned id's on connect, however sometimes these can be broken from players reconnecting or bot's taking id's for themeselves. \x03 ¯\\_\x28ツ\x29_/¯");
-			ScriptPrintMessageChatAll(" \x07 Use !reset to fix this!"); 
-			break;
-		case "2":
-			ScriptPrintMessageChatAll(" \x04 Page 2/3");
-			ScriptPrintMessageChatAll(" \x04 --------------------------------------------------------------------------------------");
-			ScriptPrintMessageChatAll(" \x04 !random \x05 toggles random weapons eg. !random knife");
-			ScriptPrintMessageChatAll(" \x05 - options: primary \x04|\x05  secondary \x04|\x05 knife \x04|\x05 competitive")
-			ScriptPrintMessageChatAll(" \x04 !armor \x05 toggles armor");
-			ScriptPrintMessageChatAll(" \x04 !bumpmines\x05 toggles bump mines");
-			ScriptPrintMessageChatAll(" \x04 !helmet \x05 toggles helmets");
-			ScriptPrintMessageChatAll(" \x04 !hs \x05 toggles headshot only");
-			break;
-		case "1":
-		default:
-			ScriptPrintMessageChatAll(" \x04 Page 1/3");
-			ScriptPrintMessageChatAll(" \x04 --------------------------------------------------------------------------------------");
-			ScriptPrintMessageChatAll(" \x04 Write the command without arguments to list weapons \x05 eg. !gun");
-			ScriptPrintMessageChatAll(" \x04 !gun Name ‎‎\x05 eg. !gun ak");
-			ScriptPrintMessageChatAll(" \x04 !pistol Name \x05 eg. !pistol deagle");
-			ScriptPrintMessageChatAll(" \x04 !knife Name \x05 eg. !knife butterfly");
-			break;
-	}
 }
