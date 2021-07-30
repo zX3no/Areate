@@ -2,20 +2,24 @@
 ## Give yourself weapons using chat commands:
 
 ### Commands:
-* `!gun !pistol !knife` 
-  
-  Syntax: `!command weapon`
+* `!weapon` 
   
   Gives the player a weapon of their choice. 
+
+  Syntax: `!weapon weapon_name`
+
+  Example: `!weapon awp, !weapon karambit`
+  
   
   [A full list of all possible weapon commands and their abbreviations](https://github.com/zX3no/WeaponScript/blob/main/vscripts/ChatCommands.nut#L304).
 * `!random`
   
+  Gives all players random weapons. See [PrimaryList, PistolList, KnifeList and CompetitiveList.](https://github.com/zX3no/WeaponScript/blob/main/vscripts/GlobalVariables.nut)
+
   Mode: `Primary, Secondary, Knife, Competitive`
 
   Syntax: `!random mode`
 
-  Gives all players random weapons. See [PrimaryList, PistolList, KnifeList and CompetitiveList.](https://github.com/zX3no/WeaponScript/blob/main/vscripts/GlobalVariables.nut)
 
 * `!armor`
   
