@@ -138,7 +138,7 @@ function UserInput(msg, id)
 			return "false";
 		case "helm":
 		case "helmet":
-		case "helments":
+		case "helmets":
 			if(equipHelmet)
 				equipHelmet = SettingState("Helmet", equipHelmet);
 			else
@@ -562,39 +562,27 @@ function RandomWeapons(val)
 	{
 		case "p":
 		case "primary":
-			if(randomPrimary)
-				randomPrimary = SettingState("Random Primary", randomPrimary);
-			else
-			{
+			if(!randomPrimary)
 				randomCompetitive = false;
-				randomPrimary = SettingState("Random Primary", randomPrimary);
-			}
+
+			randomPrimary = SettingState("Random Primary", randomPrimary);
 			break;
 		case "s":
 		case "secondary":
 		case "sec":
-			if(randomSecondary)
-				randomSecondary = SettingState("Random Secondary", randomSecondary);
-			else
-				randomSecondary = SettingState("Random Secondary", randomSecondary);
+			randomSecondary = SettingState("Random Secondary", randomSecondary);
 			break;
 		case "k":
 		case "knife":
-			if(randomKnife)
-				randomKnife = SettingState("Random Knife", randomKnife);
-			else
-				randomKnife = SettingState("Random Knife", randomKnife);
+			randomKnife = SettingState("Random Knife", randomKnife);
 			break;
 		case "c":
 		case "comp":
 		case "competitive":
-			if(randomCompetitive)
-				randomCompetitive = SettingState("Random Competitive", randomCompetitive);
-			else
-			{
+			if(!randomCompetitive)
 				randomPrimary = false;
-				randomCompetitive = SettingState("Random Competitive", randomCompetitive);
-			}
+
+			randomCompetitive = SettingState("Random Competitive", randomCompetitive);
 			break;
 		default:
 			SettingState("Random Primaries", !randomPrimary);
