@@ -1,7 +1,8 @@
-# Chat Weapon Script
-## Give yourself weapons using chat commands:
+# Chat Commands
+*Use chat commands to give yourself weapons and change server commands.*
 
-### Commands:
+Commands:
+
 * `!weapon` 
   
   Gives the player a weapon of their choice. 
