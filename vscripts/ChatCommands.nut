@@ -1,6 +1,6 @@
-IncludeScript("VSLibrary")
+IncludeScript("vs_library")
 
-class CSPlayer
+::CSPlayer <- class
 {
 	ID = null;
 	Name = null;
@@ -37,7 +37,7 @@ class CSPlayer
 	}
 }
 
-::OnGameEvent_round_start <- function(data)
+VS.ListenToGameEvent("round_start", function(data)
 {
 	VS.ValidateUseridAll();
 
@@ -49,39 +49,38 @@ class CSPlayer
 
 	foreach(player in ::VS.GetAllPlayers())
 	{
-		local Scope = GetScope(player);
 		if(IsBot(player))
 			GiveBotWeapons(player);
 		else
 		{
+			local userid = player.GetScriptScope().userid;
 			local exist = false;
 
 			for(local i = 0; i < Players.len(); i++)
 			{
-				if(Players[i].ID == Scope.userid)
+				if(Players[i].ID == userid)
 					exist = true;
 			}	
 			if(!exist)
-				Players.push(CSPlayer(Scope.userid));
+				Players.push(CSPlayer(userid));
 		}
 	}
 
 	GiveWeapons(true, null, null);
-}.bindenv(this);
+}.bindenv(this), "test");
 
-::OnGameEvent_player_say <- function(data)
+VS.ListenToGameEvent("player_say", function(data)
 {
 	local msg = data.text
-	local player = VS.GetPlayerByUserid(data.userid);
+	local userid = data.userid;
+	local player = VS.GetPlayerByUserid(userid);
 
 	if(msg.slice(0,1) != "!")
 		return
 
-	local result = UserInput(msg.slice(1), data.userid)
-	
-	if(result == "true") 
-		GiveWeapons(false, player, data.userid);
-}.bindenv(this)
+	if(UserInput(msg.slice(1), userid)) 
+		GiveWeapons(false, player, userid);
+}.bindenv(this), "test");
 
 function UserInput(msg, id)
 {
@@ -100,7 +99,7 @@ function UserInput(msg, id)
 			if(SetWeapon(val, id))
 				return "true";
 			else 
-				return "false";
+				return false;
 		case "hs":
 		case "headshot":
 			if(headshotOnly)
@@ -113,7 +112,7 @@ function UserInput(msg, id)
 				headshotOnly = SettingState("Headshot Only", headshotOnly);
 				SendToConsole("mp_damage_headshot_only 1");
 			}
-			return "false";
+			return false;
 		case "a":
 		case "arm":
 		case "armor":
@@ -124,7 +123,7 @@ function UserInput(msg, id)
 				equipArmor = SettingState("Armor", equipArmor);
 			else
 				equipArmor = SettingState("Armor", equipArmor);
-			return "false";
+			return false;
 		case "h":	
 		case "help":
 			ScriptPrintMessageChatAll(" \x04 !w ‎‎\x05 name \x04 | \x05 !w ak / !w tec9 / !w bayonet");
@@ -135,7 +134,7 @@ function UserInput(msg, id)
 			ScriptPrintMessageChatAll(" \x04 !headshot");
 			ScriptPrintMessageChatAll(" \x04 !bot");
 			ScriptPrintMessageChatAll(" \x07 !reset"); 
-			return "false";
+			return false;
 		case "helm":
 		case "helmet":
 		case "helmets":
@@ -143,7 +142,7 @@ function UserInput(msg, id)
 				equipHelmet = SettingState("Helmet", equipHelmet);
 			else
 				equipHelmet = SettingState("Helmet", equipHelmet);
-			return "false";
+			return false;
 		case "b":
 		case "bump":
 		case "bumpmine":
@@ -158,11 +157,11 @@ function UserInput(msg, id)
 				SendToConsole("sv_falldamage_scale 0");
 				giveBumpMines = SettingState("Bump Mines", giveBumpMines);
 			}
-			return "false";
+			return false;
 		case "reset":
 			Players = [];	
 			ScriptPrintMessageChatAll(" \x07 ALL ID'S ARE RESET");
-			return "false";
+			return false;
 		case "bot":
 		case "bots":
 			if(enableBots)
@@ -177,15 +176,15 @@ function UserInput(msg, id)
 				SendToConsole("bot_add");
 				enableBots = SettingState("Bots", enableBots);
 			}
-			return "false";
+			return false;
 		case "random":
 		case "rand":
 		case "r":
 			RandomWeapons(val);
-			return "false";
+			return false;
 		default:
 			ScriptPrintMessageChatAll(" \x07 Invalid command.");
-			return "false";
+			return false;
 	}
 }
 
@@ -595,20 +594,13 @@ function RandomWeapons(val)
 
 ::IsBot <- function(player)
 {
-	player = GetScope(player);
-	if (player.networkid == "")
+	local networkid = player.GetScriptScope().networkid;
+	if (networkid == "")
 	{
 		ScriptPrintMessageChatAll(" \x07 Server is corrupt? Unlucky!");
 		return true;
 	}
-	return player.networkid == "BOT"
-}
-
-::GetScope <- function(player)
-{
-	player.ValidateScriptScope();
-	player = player.GetScriptScope();
-	return player;
+	return networkid == "BOT"
 }
 
 ::SettingState <- function(option, state)
