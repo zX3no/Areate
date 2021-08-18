@@ -1,0 +1,10 @@
+Sky
+{
+	// if you compiled with nocompress:
+	$hdrbasetexture		"skybox/areateup"
+ 
+	$basetexture		"skybox/vertigoBlue_up"
+	
+	$nofog 1
+	$ignorez 1
+}

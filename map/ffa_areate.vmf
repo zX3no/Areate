@@ -2,7 +2,7 @@ versioninfo
 {
 	"editorversion" "400"
 	"editorbuild" "9018"
-	"mapversion" "558"
+	"mapversion" "567"
 	"formatversion" "100"
 	"prefab" "0"
 }
@@ -81,17 +81,17 @@ viewsettings
 	"bShowGrid" "1"
 	"bShowLogicalGrid" "0"
 	"nGridSpacing" "1"
-	"bShow3DGrid" "0"
+	"bShow3DGrid" "1"
 }
 world
 {
 	"id" "1"
-	"mapversion" "558"
+	"mapversion" "567"
 	"classname" "worldspawn"
 	"detailmaterial" "detail/detailsprites"
 	"detailvbsp" "detail.vbsp"
 	"maxpropscreenwidth" "-1"
-	"skyname" "sky_dust"
+	"skyname" "vertigoblue_hdr"
 	solid
 	{
 		"id" "1002146"
@@ -112057,8 +112057,8 @@ cameras
 	"activecamera" "0"
 	camera
 	{
-		"position" "[-128.633 1.42955 201.458]"
-		"look" "[111.101 51.2019 96.517]"
+		"position" "[66.071 -63.222 200.859]"
+		"look" "[-147.112 40.1617 79.0929]"
 	}
 	camera
 	{
