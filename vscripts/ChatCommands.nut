@@ -345,6 +345,7 @@ function ParseWeaponName(val, i) {
 		case "dak":
 		case "g3":
 			Players[i].Primary = "weapon_g3sg1";
+			break;
 		case "scar":
 		case "scar20":
 			Players[i].Primary = "weapon_scar20";
