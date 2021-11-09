@@ -473,6 +473,7 @@ function ParseWeaponName(val, i) {
 			Players[i].Knife = "weapon_knife_butterfly";
 			break;
 		case "karambit":
+		case "kar":
 		case "kara":
 			Players[i].Knife = "weapon_knife_karambit";
 			break;
