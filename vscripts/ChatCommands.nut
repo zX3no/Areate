@@ -189,30 +189,40 @@ function UserInput(msg, id)
 	}
 }
 
-function GiveWeapons(server, p, id)
+function GiveWeapons(server, player, id)
 {
+	if (randomPrimary)
+		::p <- RandomInt(primaryList.len());
+	else if(randomCompetitive)
+		::p <- RandomInt(competitiveList.len());
+
+	if(randomSecondary)
+		::s <- RandomInt(secondaryList.len());
+
+	if(randomKnife)
+		::k <- RandomInt(knifeList.len());
+
 	for(local i = 0; i < Players.len(); i++)
 	{
 		if(server)
 		{
-			local player = VS.GetPlayerByUserid(Players[i].ID);
-			
 			if(randomPrimary)
-				Players[i].Primary = primaryList[RandomInt(primaryList.len())];
-			else if(randomCompetitive)
-				Players[i].Primary = competitiveList[RandomInt(competitiveList.len())]; 
+				Players[i].Primary = primaryList[p];
+			else if(randomCompetitive) 
+				Players[i].Primary = competitiveList[p]; 
 		
 			if(randomSecondary)
-				Players[i].Secondary = secondaryList[RandomInt(secondaryList.len())];
+				Players[i].Secondary = secondaryList[s];
 
 			if(randomKnife)
-				Players[i].Knife = knifeList[RandomInt(knifeList.len())];
+				Players[i].Knife = knifeList[k];
 
-			GivePlayerEquipment(player, i);
+			local local_player = VS.GetPlayerByUserid(Players[i].ID);
+			GivePlayerEquipment(local_player, i);
 		}
 		else if(Players[i].ID == id)
 		{
-			GivePlayerEquipment(p, i);
+			GivePlayerEquipment(player, i);
 		}
 	}
 }
@@ -275,7 +285,7 @@ function SetWeapon(val, id) {
 	
 	local player = VS.GetPlayerByUserid(Players[i].ID);
 
-	if (ParseWeaponName(val i))
+	if (ParseWeaponName(val, i))
 		if (!player.GetHealth())
 			return false;
 		else return true; 
