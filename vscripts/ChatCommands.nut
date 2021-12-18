@@ -41,7 +41,7 @@ VS.ListenToGameEvent("round_start", function(data)
 {
 	if(printHelp)
 	{
-		ScriptPrintMessageChatAll(" \x04 Type !help for command help!");
+		ScriptPrintMessageChatAll(" \x04 Type !help for a list of commands!");
 		printHelp = false;
 	}
 
