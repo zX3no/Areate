@@ -5,6 +5,7 @@
 ::headshotOnly <- false;
 ::giveBumpMines <- false;
 ::enableBots <- false;
+::printHelp <- true;
 
 ::randomPrimary <- false;
 ::randomSecondary <- false;

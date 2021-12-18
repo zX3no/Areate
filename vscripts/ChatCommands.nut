@@ -39,8 +39,11 @@ IncludeScript("vs_library")
 
 VS.ListenToGameEvent("round_start", function(data)
 {
-	if(ScriptGetRoundsPlayed() == 0)
+	if(printHelp)
+	{
 		ScriptPrintMessageChatAll(" \x04 Type !help for command help!");
+		printHelp = false;
+	}
 
 	if(!enableBots)
 		SendToConsole("bot_kick")
