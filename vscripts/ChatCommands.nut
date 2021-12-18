@@ -39,8 +39,6 @@ IncludeScript("vs_library")
 
 VS.ListenToGameEvent("round_start", function(data)
 {
-	VS.ValidateUseridAll();
-
 	if(ScriptGetRoundsPlayed() == 0)
 		ScriptPrintMessageChatAll(" \x04 Type !help for command help!");
 
