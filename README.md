@@ -12,10 +12,10 @@ Commands:
   Example: `!weapon awp, !weapon karambit`
   
   
-  [A full list of all possible weapon commands and their abbreviations](https://github.com/zX3no/WeaponScript/blob/main/vscripts/ChatCommands.nut#L304).
+  [A full list of all possible weapon commands and their abbreviations](vscripts/ChatCommands.nut#L313).
 * `!random`
   
-  Gives all players random weapons. See [PrimaryList, PistolList, KnifeList and CompetitiveList.](https://github.com/zX3no/WeaponScript/blob/main/vscripts/GlobalVariables.nut)
+  Gives all players random weapons. See [PrimaryList, PistolList, KnifeList and CompetitiveList.](vscripts/GlobalVariables.nut)
 
   Mode: `Primary, Secondary, Knife, Competitive`
 
