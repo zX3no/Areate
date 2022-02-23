@@ -31,22 +31,20 @@ Called from hammer with a `logic_script` entity.
 
 Entry point which handles most of the logic.
 
-#### Callbacks
-
-- round_start
+**round_start:**
   - If it's round 0 the help menu is printed
   - Bots will be kicked each round if they're not enabled.
   - Iterate over every player and give them their weapons.
   - A new player class will be created if their id hasn't been assigned to one.
 
-- player_say
+**player_say:**
   - Parses the players input and executes the corresponding commands
 
 ### globals.nut
 
 Holds the state of players, game options and available weapons.
 
-### vs_eventlistener | vs_events | vs_library
+### vs_eventlistener, vs_events & vs_library
 
 Used for listening to in-game events.
 The library can be found at [samisalreadytaken/vs_library](https://github.com/samisalreadytaken/vs_library).
@@ -59,7 +57,7 @@ The library can be found at [samisalreadytaken/vs_library](https://github.com/sa
 - Entity Scripts: vs_eventlistener.nut
 - Template01: vs.eventlistener
 
-*these two entities are used to capture in-game events such as: player_spawn, player_say, round_start.*
+*These two entities are used to capture in-game events such as: player_spawn, player_say, round_start.*
 
 **logic_script**:
 - Entity Scripts: main.nut
@@ -80,16 +78,15 @@ The library can be found at [samisalreadytaken/vs_library](https://github.com/sa
 
 >❗ All chat commands start with an exclamation mark.
 
-> Commands have many abbreviations, you can find them [here](vscripts/ChatCommands.nut#L96).
+> Commands have many abbreviations, you can find them [here](vscripts/main.nut#L96).
 
-| Command     | Function                                  | Parameters                                    | Example    |
-|-------------|-------------------------------------------|-----------------------------------------------|------------|
-| weapon/w    | Gives the player any weapon               | [Weapon Name](vscripts/ChatCommands.nut#L313) | !w m4a4    |
-| random/r    | Randomizes the weapons given              | Primary, Secondary, Knife, Competitive        | !r primary |
-| armor       | Toggles armor                             |                                               |            |
-| headshot/hs | Toggles headshot only                     |                                               |            |
-| bumpmines/b | Gives bumpmines at the start of the round |                                               |            |
-| bot         | Toggles bots                              |                                               |            |
-| reset       | Legacy command to fix userid errors       |                                               |            |
-
-## Adding to your map
+| Command     | Function                                  | Parameters                             | Example    |
+|-------------|-------------------------------------------|----------------------------------------|------------|
+| weapon/w    | Gives the player any weapon               | [Weapon Name](vscripts/main.nut#L313)  | !w m4a4    |
+| random/r    | Randomizes the weapons given              | Primary, Secondary, Knife, Competitive | !r primary |
+| armor/a     | Toggles kevlar                            |                                        |            |
+| helmet/helm | Toggles helmets                           |                                        |            |
+| headshot/hs | Toggles headshot only                     |                                        |            |
+| bumpmines/b | Gives bumpmines at the start of the round |                                        |            |
+| bot         | Toggles bots                              |                                        |            |
+| reset       | Legacy command to fix userid errors       |                                        |            |
