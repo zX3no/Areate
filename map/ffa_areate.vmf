@@ -2,7 +2,7 @@ versioninfo
 {
 	"editorversion" "400"
 	"editorbuild" "9178"
-	"mapversion" "567"
+	"mapversion" "570"
 	"formatversion" "100"
 	"prefab" "0"
 }
@@ -80,13 +80,13 @@ viewsettings
 	"bSnapToGrid" "1"
 	"bShowGrid" "1"
 	"bShowLogicalGrid" "0"
-	"nGridSpacing" "1"
+	"nGridSpacing" "8"
 	"bShow3DGrid" "1"
 }
 world
 {
 	"id" "1"
-	"mapversion" "567"
+	"mapversion" "570"
 	"classname" "worldspawn"
 	"detailmaterial" "detail/detailsprites"
 	"detailvbsp" "detail.vbsp"
@@ -52352,11 +52352,7 @@ entity
 	"IsEnabled" "1"
 	"targetname" "vs.eventlistener"
 	"TeamNum" "-1"
-	connections
-	{
-		"OnEventFired" "player_spawnRunScriptCode::VS.Events.player_spawn(event_data)0-1"
-	}
-	"origin" "-8.55926 -11.2333 16"
+	"origin" "48 8 16"
 	editor
 	{
 		"color" "220 30 220"
@@ -52378,7 +52374,7 @@ entity
 	"angles" "0 270 0"
 	"pitch" "-45"
 	"SunSpreadAngle" "2"
-	"origin" "-10.0759 19.2355 16"
+	"origin" "-24 -32 16"
 	editor
 	{
 		"color" "220 30 220"
@@ -52394,7 +52390,7 @@ entity
 	"spawnflags" "2"
 	"Template01" "vs.eventlistener"
 	"vscripts" "vs_eventlistener.nut"
-	"origin" "25.4407 -7.4277 19"
+	"origin" "48 -8 16"
 	editor
 	{
 		"color" "220 30 220"
@@ -52442,7 +52438,7 @@ entity
 		"OnMultiNewMap" "servercmdCommandmp_respawn_immunitytime 00-1"
 		"OnMultiNewMap" "servercmdCommandmp_ignore_round_win_conditions 00-1"
 	}
-	"origin" "-8.55926 -43.2333 16"
+	"origin" "-8 -64 16"
 	editor
 	{
 		"color" "220 30 220"
@@ -52455,9 +52451,8 @@ entity
 {
 	"id" "1023431"
 	"classname" "logic_script"
-	"targetname" "@script"
-	"vscripts" "ChatCommands.nut"
-	"origin" "7.44074 -43.2333 16"
+	"vscripts" "main.nut"
+	"origin" "48 -40 16"
 	editor
 	{
 		"color" "220 30 220"
@@ -52472,7 +52467,7 @@ entity
 	"classname" "game_player_equip"
 	"spawnflags" "3"
 	"targetname" "equip_strip"
-	"origin" "23.4407 -43.2333 16.934"
+	"origin" "48 -24 16"
 	editor
 	{
 		"color" "220 30 220"
@@ -52486,7 +52481,7 @@ entity
 	"id" "1023435"
 	"classname" "point_servercommand"
 	"targetname" "servercmd"
-	"origin" "39.4407 -43.2333 17"
+	"origin" "8 -64 17"
 	editor
 	{
 		"color" "220 30 220"
@@ -52517,9 +52512,9 @@ entity
 	"Subdiv" "2"
 	"TextureScale" "1"
 	"Type" "0"
-	"vscripts" "GlobalVariables.nut"
+	"vscripts" "globals.nut"
 	"Width" "2"
-	"origin" "-24.5593 -43.2333 14.375"
+	"origin" "-24 -16 14.375"
 	editor
 	{
 		"color" "220 30 220"
@@ -53001,6 +52996,7 @@ entity
 	"renderamt" "255"
 	"rendercolor" "255 255 255"
 	"skin" "1"
+	"spawnflags" "0"
 	"origin" "9 45 12"
 	editor
 	{
@@ -112057,8 +112053,8 @@ cameras
 	"activecamera" "0"
 	camera
 	{
-		"position" "[94.1185 -84.957 408.498]"
-		"look" "[51.3576 128.478 254.944]"
+		"position" "[724.864 180.543 516.061]"
+		"look" "[504.291 101.441 389.362]"
 	}
 	camera
 	{

@@ -9,16 +9,11 @@
       <img src="media/4.jpg" width="49%">
 </div>
 
+<div align="center" style="display:inline">
+      <img src="media/editor.jpg">
+</div>
 
-I would like some nicer pictures here ^
-
-Screenshots of Areate inside the editor
-
-what is printl( scope.userid )?
-
-update the map to work with the new files names | hammer is currently not opening (thanks valve)
-
-I want to change from CamelCase to snake_case in my scripts.
+I need to take some new screenshots with the new skybox, old ones look a bit drab.
 
 ## Scripts
 ```
@@ -32,7 +27,7 @@ I want to change from CamelCase to snake_case in my scripts.
 
 ### main.nut
 
-Called from hammer with a Script Node?
+Called from hammer with a `logic_script` entity.
 
 Entry point which handles most of the logic.
 
@@ -49,22 +44,43 @@ Entry point which handles most of the logic.
 
 ### globals.nut
 
-Holds the state of the players while the server is running.
-
-This is possible due to some hack using the `rope magic`. Whatever that means.
+Holds the state of players, game options and available weapons.
 
 ### vs_eventlistener | vs_events | vs_library
 
 Used for listening to in-game events.
 The library can be found at [samisalreadytaken/vs_library](https://github.com/samisalreadytaken/vs_library).
 
-I may be using an old version of this library so things may be different.
+## Map Entities
+**logic_eventlistener**:
+- targetname: vs.eventlistener
+
+**point_template**:
+- Entity Scripts: vs_eventlistener.nut
+- Template01: vs.eventlistener
+
+*these two entities are used to capture in-game events such as: player_spawn, player_say, round_start.*
+
+**logic_script**:
+- Entity Scripts: main.nut
+
+*Executes main.nut.*
+
+**move_rope**:
+- Entity Scripts: globals.nut
+
+*For some reason, variables in main.nut are reset every round. For some reason scripts in move rope are persistent but never changed.*
+
+**game_player_equip**:
+- Name: equip_strip
+
+*Used to remove weapons from players. There might be a better way to do this.*
 
 ## Commands
 
-> ❗ All chat commands start with an exclamation mark
+>❗ All chat commands start with an exclamation mark.
 
-> ❗ Commands have many abbreviations, you can find them [here](vscripts/ChatCommands.nut#L96).
+> Commands have many abbreviations, you can find them [here](vscripts/ChatCommands.nut#L96).
 
 | Command     | Function                                  | Parameters                                    | Example    |
 |-------------|-------------------------------------------|-----------------------------------------------|------------|
