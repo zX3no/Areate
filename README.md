@@ -15,8 +15,6 @@
 
 [![Workshop](media/workshop.png)](https://steamcommunity.com/sharedfiles/filedetails/?id=823181241)
 
-I need to take some new screenshots with the new skybox, old ones look a bit drab.
-
 ## Scripts
 ```
 📦vscripts
