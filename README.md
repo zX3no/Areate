@@ -1,7 +1,7 @@
 <h1 align="center" style="font-size: 55px">Areate</h1>
 
 <div align="center" style="display:inline">
-      <img src="media/1.jpg" width="49%">
+      <img src="media/1-low.jpg" width="49%">
       <img src="media/2.jpg" width="49%">
 </div>
 <div align="center" style="display:inline">
@@ -12,6 +12,8 @@
 <div align="center" style="display:inline">
       <img src="media/editor.jpg">
 </div>
+
+[![Workshop](media/workshop.png)](https://steamcommunity.com/sharedfiles/filedetails/?id=823181241)
 
 I need to take some new screenshots with the new skybox, old ones look a bit drab.
 
