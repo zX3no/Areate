@@ -388,7 +388,7 @@ function ParseWeaponName(val, i) {
 			Players[i].Primary = "weapon_negev";
 			break;
 			
-		//Smg
+		//SMG
 		case "mac":
 		case "mac10":
 			Players[i].Primary = "weapon_mac10";
@@ -415,9 +415,8 @@ function ParseWeaponName(val, i) {
 		case "ppbizon":
 			Players[i].Primary = "weapon_bizon";
 			break;	
-		//
-		//PISTOL
-		//
+
+		//Pistol
 		case "usp":
 		case "usps":
 		case "usp-s":
@@ -468,9 +467,8 @@ function ParseWeaponName(val, i) {
 		case "r8":
 			Players[i].Secondary = "weapon_revolver";
 			break;
-		//
-		//KNIFE	
-		//
+
+		//Knife
 		case "m9":
 			Players[i].Knife = "weapon_knife_m9_bayonet";
 			break;
