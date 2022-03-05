@@ -61,7 +61,7 @@ These two entities are used to capture in-game events such as: player_spawn, pla
 - logic_script
   - Entity Scripts: main.nut
 
-Executes main.nut
+Executes main.nut.
 
 - move_rope
   - Entity Scripts: globals.nut
@@ -80,7 +80,7 @@ Used to remove weapons from players.
 |-------------|--------------------------------------------------------------------|--------------------------------------------|------------|
 | weapon/w    | Gives the player any weapon. `!w` will list all available weapons. | [Any weapon name.](vscripts/main.nut#L313) | !w m4a4    |
 | random/r    | Randomizes the weapons given.                                      | Primary, Secondary, Knife, Competitive.    | !r primary |
-| armor/a     | Toggles kevlar.                                                    |                                            | !a         |
+| armour/a    | Toggles kevlar.                                                    |                                            | !a         |
 | helmet/helm | Toggles helmets.                                                   |                                            | !helm      |
 | headshot/hs | Toggles headshot only.                                             |                                            | !hs        |
 | bumpmines/b | Gives bumpmines at the start of the round.                         |                                            | !b         |
