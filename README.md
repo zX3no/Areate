@@ -30,10 +30,10 @@
 The entry point, called from hammer with a `logic_script` entity.
 
 - round_start
-  - If it's round 0 the help menu will be printed
-  - Bots are kicked each round unless enabled.
-  - Iterate over every player and equip their weapons.
+  - Bots are kicked unless enabled.
   - Players are instantiated and given a unique id.
+  - Players weapons are equiped.
+  - If it's round 0 the help menu will be printed.
 
 - player_say:
   - Parses player input and executes the corresponding command.
