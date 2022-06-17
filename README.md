@@ -56,22 +56,22 @@ The library can be found at [samisalreadytaken/vs_library](https://github.com/sa
   - Entity Scripts: vs_eventlistener.nut
   - Template01: vs.eventlistener
 
-These two entities are used to capture in-game events such as: player_spawn, player_say, round_start.
+  These two entities are used to capture in-game events such as: player_spawn, player_say, round_start.
 
 - logic_script
   - Entity Scripts: main.nut
 
-Executes main.nut.
+  Runs the gamic logic.
 
 - move_rope
   - Entity Scripts: globals.nut
 
-For some reason, variables in main.nut are reset every round. For some reason scripts in move rope are persistent but never changed.
+  A `move_rope` is used to store persitant data. I don't konw why this works but it does.
 
 - game_player_equip
   - Name: equip_strip
 
-Used to remove weapons from players.
+  Used to remove weapons from players.
 
 ## Commands
 
